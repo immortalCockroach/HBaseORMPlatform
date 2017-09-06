@@ -3,6 +3,7 @@
 !pom.xml
 !src/main/resources/log4j.xml
 !src/main/webapp/WEB-INF/web.xml
+!src/main/resources/applicationContext.xml
 *.class
 *.iml
 *.properties

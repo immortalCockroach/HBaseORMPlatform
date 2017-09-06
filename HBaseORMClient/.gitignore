@@ -9,3 +9,4 @@
 target/
 *.iws
 out/
+!src/main/resources/applicationContext.xml
