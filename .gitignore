@@ -1,0 +1,11 @@
+#IDEA gitignore
+*.xml
+!pom.xml
+!src/main/resources/log4j.xml
+!src/main/webapp/WEB-INF/web.xml
+*.class
+*.iml
+*.properties
+target/
+*.iws
+out/

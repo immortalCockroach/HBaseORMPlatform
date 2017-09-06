@@ -1,0 +1,10 @@
+<!DOCTYPE web-app PUBLIC
+        "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+        "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+    <!--servlet容器启动的时候负责连接到HBase，关闭的时候断开连接-->
+    <listener>
+        <listener-class>service.servlet.PlatformListener</listener-class>
+    </listener>
+</web-app>

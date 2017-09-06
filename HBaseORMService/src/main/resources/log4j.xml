@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM
+        "http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/xml/doc-files/log4j.dtd">
+<log4j:configuration>
+
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <param name="target" value="System.out"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n"/>
+        </layout>
+    </appender>
+
+    <appender name="R_INFO" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="${user.home}/HBaseLog/info.log"/>
+        <param name="Append" value="true"/>
+        <param name="MaxFileSize" value="20000KB"/>
+        <param name="MaxBackupIndex" value="2"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%x %d (%c:%L) %5p - %m%n"/>
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMin" value="INFO"/>
+            <param name="LevelMax" value="INFO"/>
+        </filter>
+    </appender>
+
+    <appender name="R_WARN" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="${user.home}/HBaseLog/warn.log"/>
+        <param name="Append" value="true"/>
+        <param name="MaxFileSize" value="20000KB"/>
+        <param name="MaxBackupIndex" value="2"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%x %d (%c:%L) %5p - %m%n"/>
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMin" value="WARN"/>
+            <param name="LevelMax" value="WARN"/>
+        </filter>
+    </appender>
+
+    <appender name="R_ERROR" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="${user.home}/HBaseLog/error.log"/>
+        <param name="Append" value="true"/>
+        <param name="MaxFileSize" value="20000KB"/>
+        <param name="MaxBackupIndex" value="2"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%x %d (%c:%L) %5p - %m%n"/>
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMin" value="ERROR"/>
+            <param name="LevelMax" value="ERROR"/>
+        </filter>
+    </appender>
+
+    <appender name="R_FATAL" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="${user.home}/HBaseLog/fatal.log"/>
+        <param name="Append" value="true"/>
+        <param name="MaxFileSize" value="20000KB"/>
+        <param name="MaxBackupIndex" value="2"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%x %d (%c:%L) %5p - %m%n"/>
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMin" value="FATAL"/>
+            <param name="LevelMax" value="FATAL"/>
+        </filter>
+    </appender>
+
+    <root>
+        <priority value="INFO"/>
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="R_INFO"/>
+        <appender-ref ref="R_WARN"/>
+        <appender-ref ref="R_ERROR"/>
+        <appender-ref ref="R_FATAL"/>
+    </root>
+</log4j:configuration>
