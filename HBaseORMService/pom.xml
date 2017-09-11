@@ -5,7 +5,7 @@
     <parent>
         <artifactId>HBaseORMPlatform</artifactId>
         <groupId>immortalCockroach</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -226,6 +226,11 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>immortalCockroach</groupId>
+            <artifactId>HBaseORMAPI</artifactId>
+            <version>1.0</version>
+        </dependency>
         <dependency>
             <groupId>immortalCockroach</groupId>
             <artifactId>HBaseORMAPI</artifactId>
