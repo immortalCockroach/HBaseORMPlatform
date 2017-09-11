@@ -97,11 +97,14 @@ public class GlobalIndexInfoHolder {
 
     /**
      * 当添加了索引后将其同步到map和global_idx表中
-     *
+     * global_idx表的结构为：
+     * rowkey ------------ column(idxs)
+     * tableName-----------col1_col2_col3,col4
+     * 其中col1, col2为单列索引，col3,col4为联合索引
      * @param tableName  数据表的表明
      * @param qualifiers 索引列
      */
-    public void createTableIndex(byte[] tableName, String[] qualifiers) {
+    public void updateTableIndex(byte[] tableName, String[] qualifiers) {
         PlainResult result = getter.read(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, tableName, new String[]{ServiceConstants.GLOBAL_INDEX_TABLE_COL});
         // 该表的第一个index
         if (result.getSize() == 0) {
@@ -124,7 +127,7 @@ public class GlobalIndexInfoHolder {
             lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes(newIndex));
             inserter.insert(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, lineMap);
         }
-
+        // 更新当前global_idx表维护的索引信息
         Set<String> indexSet = globalIndexMap.get(Bytes.toString(tableName));
         if (indexSet == null) {
             indexSet = new HashSet<>();
@@ -155,7 +158,7 @@ public class GlobalIndexInfoHolder {
     /**
      * 根据表中的索引和插入对应的qualifers，判断生效的索引
      * 对tableName对应的globalMap中的索引集合中的每个索引做考察
-     * 所以每个索引列都被qualifers命中，则索引命中
+     * 所以索引的每个索引列都在qualifers中，则该索引命中
      *
      * @param tableName
      * @param qualifiers

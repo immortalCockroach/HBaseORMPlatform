@@ -51,4 +51,22 @@ public class TableCreatService {
         return ResultUtil.getSuccessBaseResult();
     }
 
+    public BaseResult createTable(byte[] tableName) {
+
+        Connection connection = HBaseConnectionPool.getConnection();
+
+        try (Admin admin = connection.getAdmin()) {
+
+            HTableDescriptor tableDesc = new HTableDescriptor(TableName.valueOf(tableName));
+
+            tableDesc.addFamily(new HColumnDescriptor(ServiceConstants.BYTES_COLUMN_FAMILY));
+            admin.createTable(tableDesc);
+        } catch (IOException ioe) {
+            logger.error(ioe);
+            return ResultUtil.getFailedBaseResult("创建表失败");
+        }
+
+        return ResultUtil.getSuccessBaseResult();
+    }
+
 }

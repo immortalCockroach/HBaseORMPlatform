@@ -57,13 +57,13 @@ public class TableIndexService {
         }
         int size = res.getSize();
 
-        // 没有数据直接返回
+        // 没有数据则在global_idx表中创建对对应的信息即可
         if (size == 0) {
-            indexInfoHolder.createTableIndex(tableName, qualifiers);
+            indexInfoHolder.updateTableIndex(tableName, qualifiers);
             return ResultUtil.getSuccessBaseResult();
         } else {
             // 更新内存map的数据
-            indexInfoHolder.createTableIndex(tableName, qualifiers);
+            indexInfoHolder.updateTableIndex(tableName, qualifiers);
             JSONArray rows = res.getData();
             List<Map<String, byte[]>> valuesList = new ArrayList<>(size);
             // 将数据转换为对应的形式然后put到index表中

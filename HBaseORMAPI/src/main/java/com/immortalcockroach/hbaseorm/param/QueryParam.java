@@ -54,14 +54,18 @@ public class QueryParam implements Serializable {
      */
     public static class QueryParamBuilder {
         private final byte[] tableName;
-        private final String[] qualifiers;
+        private String[] qualifiers;
 
         private byte[] startKey;
         private byte[] endKey;
 
-        public QueryParamBuilder(byte[] tableName, String[] qualifiers) {
+        public QueryParamBuilder(byte[] tableName) {
             this.tableName = tableName;
+        }
+
+        public QueryParamBuilder qulifiers(String[] qualifiers) {
             this.qualifiers = qualifiers;
+            return this;
         }
 
         public QueryParamBuilder endKey(byte[] endKey) {

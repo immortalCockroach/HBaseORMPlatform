@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
@@ -21,7 +22,10 @@ import service.constants.ServiceConstants;
 import service.hbasemanager.connection.HBaseConnectionPool;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 读取表的多行记录
@@ -33,6 +37,8 @@ public class TableScanService {
 
     /**
      * 查询若干行
+     * 需要注意的是，由于当查询的qualifiers不存在的时候，HBase会过滤掉该行
+     * 此处的解决方案是，qualifers用于查询结果的过滤，但是不传给Scan作为原生API的列过滤操作
      *
      * @param tableName
      * @param startRow
@@ -59,10 +65,8 @@ public class TableScanService {
             if (prefix != null) {
                 scan.setFilter(new PrefixFilter(prefix));
             }
-
-            for (String s : columnQualifiers) {
-                scan.addColumn(family, Bytes.toBytes(s));
-            }
+            // 此处只设置列族，qualifiers用于查询结果的手动过滤
+            scan.addFamily(family);
 
             scan.setCaching(50);
             scan.setBatch(10);
@@ -75,17 +79,32 @@ public class TableScanService {
 
                 // null表示没有rowkey对应的行
                 if (list != null) {
-                    for (Cell c : list) {
-                        lineResult.put(Bytes.toString(CellUtil.cloneQualifier(c)), CellUtil.cloneValue(c));
-                    }
-                    // 将行标识rowkey也加入到result中 key为常量"rowkey";
-                    lineResult.put(CommonConstants.ROW_KEY, r.getRow());
-                    // 将查询不到的列填充为null，有可能索引处需要使用
-                    for (String q : columnQualifiers) {
-                        if (!lineResult.containsKey(q)) {
-                            lineResult.put(q, null);
+                    // 如果列修饰符为null，则填充所有的列
+                    if (ArrayUtils.isEmpty(columnQualifiers)) {
+                        for (Cell c : list) {
+                            lineResult.put(Bytes.toString(CellUtil.cloneQualifier(c)), CellUtil.cloneValue(c));
+                        }
+                        lineResult.put(CommonConstants.ROW_KEY, r.getRow());
+                    } else {
+                        // 如果列修饰符不是null，则将qualifers中的列加入结果（没有的列就填充为null）
+                        Set<String> qualifiersSet = new HashSet<>(Arrays.asList(columnQualifiers));
+                        // 加入存在的且在给定的qualifiers中的列
+                        for (Cell c : list) {
+                            String qualifier = Bytes.toString(CellUtil.cloneQualifier(c));
+                            // 存在于qualifers中
+                            if (qualifiersSet.remove(qualifier)) {
+                                lineResult.put(qualifier, CellUtil.cloneValue(c));
+                            }
+                        }
+                        lineResult.put(CommonConstants.ROW_KEY, r.getRow());
+                        // 将不存在的列也加入到结果集中
+                        for (String q : qualifiersSet) {
+                            if (!lineResult.containsKey(q)) {
+                                lineResult.put(q, null);
+                            }
                         }
                     }
+
                     res.add(lineResult);
                 }
 

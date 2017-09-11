@@ -79,7 +79,7 @@ public class CreateServiceImpl implements CreateService {
         // 检测表是否存在
         if (!HBaseTableUtils.tableExists(indexTableName)) {
             // 索引表不存在则创建索引表
-            BaseResult createRes = tableCreatService.createTable(indexTableName, null);
+            BaseResult createRes = tableCreatService.createTable(indexTableName);
             if (!createRes.getSuccess()) {
                 // 如果创建索引表失败了就直接返回
                 return ResultUtil.getFailedBaseResult("创建索引表失败，请稍后再试");
