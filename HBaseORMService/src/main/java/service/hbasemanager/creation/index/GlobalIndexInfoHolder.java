@@ -164,7 +164,7 @@ public class GlobalIndexInfoHolder {
      * @param qualifiers
      * @return
      */
-    public List<String> getTableIndexesWithinQualifiers(byte[] tableName, String[] qualifiers) {
+    public List<String> getHitIndexesWithinQualifiers(byte[] tableName, String[] qualifiers) {
 
         Set<String> existedIndexes = getTableIndexes(tableName);
         if (existedIndexes == null || existedIndexes.size() == 0) {

@@ -163,8 +163,7 @@ public class ByteArrayUtils {
         return indexRowkey;
     }
 
-    public static byte[] generateIndexRowKey(Map<String, byte[]> line, String[] qualifiers, byte separator, byte
-            escape, byte nul) {
+    public static byte[] generateIndexRowKey(Map<String, byte[]> line, String[] qualifiers, byte separator, byte escape, byte nul) {
         // 将一个数据变为col1 col2 ... col1v col2v ... rowkey的形式
         byte[][] list = jsonObjectToByteArrayList(line, qualifiers);
         // 将每个byte[]做转义字符处理

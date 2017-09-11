@@ -12,6 +12,7 @@
     <bean id="queryService" class="service.impl.QueryServiceImpl"/>
     <bean id="insertService" class="service.impl.InsertServiceImpl"/>
     <bean id="createService" class="service.impl.CreateServiceImpl"/>
+    <bean id="deleteService" class="service.impl.DeleteServiceImpl"/>
 
     <bean id="globalIndexInfoHolder"
           class="service.hbasemanager.creation.index.GlobalIndexInfoHolder"

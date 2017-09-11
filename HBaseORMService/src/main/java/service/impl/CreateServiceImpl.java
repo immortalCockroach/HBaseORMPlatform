@@ -10,7 +10,7 @@ import org.apache.hadoop.hbase.util.RegionSplitter;
 import service.constants.ServiceConstants;
 import service.enums.SplitAlgorithmsEnum;
 import service.hbasemanager.creation.index.TableIndexService;
-import service.hbasemanager.creation.table.TableCreatService;
+import service.hbasemanager.creation.table.TableCreateService;
 import service.hbasemanager.utils.HBaseClusterUtils;
 import service.hbasemanager.utils.HBaseTableUtils;
 
@@ -22,7 +22,7 @@ import javax.annotation.Resource;
  */
 public class CreateServiceImpl implements CreateService {
     @Resource
-    private TableCreatService tableCreatService;
+    private TableCreateService tableCreateService;
 
     @Resource
     private TableIndexService tableIndexService;
@@ -55,7 +55,7 @@ public class CreateServiceImpl implements CreateService {
             splitRange = algorithm.split(splitNum);
         }
 
-        BaseResult result = tableCreatService.createTable(tableName, splitRange);
+        BaseResult result = tableCreateService.createTable(tableName, splitRange);
         return result;
     }
 
@@ -79,7 +79,7 @@ public class CreateServiceImpl implements CreateService {
         // 检测表是否存在
         if (!HBaseTableUtils.tableExists(indexTableName)) {
             // 索引表不存在则创建索引表
-            BaseResult createRes = tableCreatService.createTable(indexTableName);
+            BaseResult createRes = tableCreateService.createTable(indexTableName);
             if (!createRes.getSuccess()) {
                 // 如果创建索引表失败了就直接返回
                 return ResultUtil.getFailedBaseResult("创建索引表失败，请稍后再试");
