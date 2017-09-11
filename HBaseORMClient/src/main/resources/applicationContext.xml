@@ -7,16 +7,6 @@
     <context:annotation-config/>
     <context:component-scan base-package="client"/>
 
-    <dubbo:application name="provider_serivce_consumer"/>
-
-    <dubbo:consumer timeout="500000" />
-
-    <!-- 使用multicast广播注册中心暴露发现服务地址 -->
-    <dubbo:registry address="zookeeper://localhost:21811"/>
-
-    <!-- 生成远程服务代理，可以和本地bean一样使用demoService -->
-    <dubbo:reference id="queryService" interface="com.immortalcockroach.hbaseorm.api.QueryService"/>
-    <dubbo:reference id="insertService" interface="com.immortalcockroach.hbaseorm.api.InsertService"/>
-    <dubbo:reference id="createService" interface="com.immortalcockroach.hbaseorm.api.CreateService"/>
+    <import resource="dubbo-config.xml"/>
 
 </beans>

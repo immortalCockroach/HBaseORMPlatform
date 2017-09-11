@@ -6,7 +6,7 @@
 
     <groupId>immortalCockroach</groupId>
     <artifactId>HBaseORMPlatform</artifactId>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>HBaseORMService</module>
@@ -14,6 +14,19 @@
         <module>HBaseORMAPI</module>
     </modules>
     <name>HBaseORMPlatform</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.7</version>
+        </dependency>
+    </dependencies>
 
 
 </project>

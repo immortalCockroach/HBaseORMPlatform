@@ -2,35 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:annotation-config/>
     <context:component-scan base-package="service"/>
 
-    <dubbo:application name="provider_serivce"/>
-
-    <dubbo:provider timeout="50000"/>
-
-    <!-- 注册中心服务地址 -->
-    <dubbo:registry id="zookeeper" protocol="zookeeper"
-                    address="zookeeper://localhost:21811"/>
-
-    <!-- 用dubbo协议在30001 -->
-    <dubbo:protocol name="dubbo" port="30001"/>
-
-    <!-- 声明需要暴露的服务接口 -->
-    <dubbo:service interface="com.immortalcockroach.hbaseorm.api.QueryService"
-                   ref="queryService"
-                   registry="zookeeper" protocol="dubbo"/>
-    <!-- 声明需要暴露的服务接口 -->
-    <dubbo:service interface="com.immortalcockroach.hbaseorm.api.InsertService"
-                   ref="insertService"
-                   registry="zookeeper" protocol="dubbo"/>
-    <!-- 声明需要暴露的服务接口 -->
-    <dubbo:service interface="com.immortalcockroach.hbaseorm.api.CreateService"
-                   ref="createService"
-                   registry="zookeeper" protocol="dubbo"/>
 
     <!-- 具体服务接口的实现 -->
     <bean id="queryService" class="service.impl.QueryServiceImpl"/>
@@ -40,4 +16,6 @@
     <bean id="globalIndexInfoHolder"
           class="service.hbasemanager.creation.index.GlobalIndexInfoHolder"
           init-method="init"/>
+
+    <import resource="dubbo-config.xml"/>
 </beans>
