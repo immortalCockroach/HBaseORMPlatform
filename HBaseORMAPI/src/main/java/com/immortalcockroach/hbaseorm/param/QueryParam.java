@@ -1,6 +1,8 @@
 package com.immortalcockroach.hbaseorm.param;
 
 
+import com.immortalcockroach.hbaseorm.param.condition.Condition;
+
 import java.io.Serializable;
 
 /**
@@ -16,14 +18,12 @@ public class QueryParam implements Serializable {
     private static final long serialVersionUID = 8195618777960273893L;
     private byte[] tableName;
     private String[] qualifiers;
-    private byte[] startKey;
-    private byte[] endKey;
+    private Condition condition;
 
     private QueryParam(QueryParamBuilder builder) {
-        this.endKey = builder.endKey;
-        this.startKey = builder.startKey;
         this.tableName = builder.tableName;
         this.qualifiers = builder.qualifiers;
+        this.condition = builder.condition;
     }
 
     /**
@@ -41,12 +41,8 @@ public class QueryParam implements Serializable {
         return qualifiers;
     }
 
-    public byte[] getStartKey() {
-        return startKey;
-    }
-
-    public byte[] getEndKey() {
-        return endKey;
+    public Condition getCondition() {
+        return condition;
     }
 
     /**
@@ -56,8 +52,7 @@ public class QueryParam implements Serializable {
         private final byte[] tableName;
         private String[] qualifiers;
 
-        private byte[] startKey;
-        private byte[] endKey;
+        private Condition condition;
 
         public QueryParamBuilder(byte[] tableName) {
             this.tableName = tableName;
@@ -68,13 +63,8 @@ public class QueryParam implements Serializable {
             return this;
         }
 
-        public QueryParamBuilder endKey(byte[] endKey) {
-            this.endKey = endKey;
-            return this;
-        }
-
-        public QueryParamBuilder startKey(byte[] startKey) {
-            this.startKey = startKey;
+        public QueryParamBuilder condition(Condition condition) {
+            this.condition = condition;
             return this;
         }
 

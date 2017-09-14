@@ -9,6 +9,7 @@ import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.springframework.stereotype.Service;
 import service.constants.ServiceConstants;
+import service.hbasemanager.entity.HitIndex;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.read.TableScanService;
 import service.utils.ByteArrayUtils;
@@ -48,8 +49,9 @@ public class TableIndexService {
      * @return
      */
     public BaseResult createIndex(byte[] tableName, byte[] indexTableName, String[] qualifiers) {
-        if (indexInfoHolder.indexExists(tableName, qualifiers)) {
-            return ResultUtil.getFailedBaseResult("该索引已经存在或者为某个索引的前缀索引=");
+        int indexNum;
+        if ((indexNum = indexInfoHolder.indexExists(tableName, qualifiers)) == -1) {
+            return ResultUtil.getFailedBaseResult("该索引已经存在或者为某个索引的前缀索引或者索引数量超过128");
         }
         ListResult res = scanner.scan(tableName, qualifiers);
         if (!res.getSuccess()) {
@@ -59,17 +61,17 @@ public class TableIndexService {
 
         // 没有数据则在global_idx表中创建对对应的信息即可
         if (size == 0) {
-            indexInfoHolder.updateTableIndex(tableName, qualifiers);
+            indexInfoHolder.updateGlobalTableIndex(tableName, qualifiers);
             return ResultUtil.getSuccessBaseResult();
         } else {
             // 更新内存map的数据
-            indexInfoHolder.updateTableIndex(tableName, qualifiers);
+            indexInfoHolder.updateGlobalTableIndex(tableName, qualifiers);
             JSONArray rows = res.getData();
             List<Map<String, byte[]>> valuesList = new ArrayList<>(size);
             // 将数据转换为对应的形式然后put到index表中
             for (int i = 0; i <= size - 1; i++) {
                 // 将每一行中，qualifiers中的内容进行转义字符的预处理并拼接成index表的rowKey
-                byte[] indexRowKey = ByteArrayUtils.generateIndexRowKey(rows.getJSONObject(i), qualifiers, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL);
+                byte[] indexRowKey = ByteArrayUtils.generateIndexRowKey(rows.getJSONObject(i), qualifiers, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL, (byte) indexNum);
 
                 // index表
                 Map<String, byte[]> lineMap = new HashMap<>(2);
@@ -94,13 +96,13 @@ public class TableIndexService {
      * @param hitIndexes
      * @return
      */
-    public BaseResult updateIndexWhenInsert(byte[] tableName, List<Map<String, byte[]>> valuesMap, List<String>
+    public BaseResult updateIndexWhenInsert(byte[] tableName, List<Map<String, byte[]>> valuesMap, List<HitIndex>
             hitIndexes) {
         byte[] indexTableName = Bytes.toBytes(Bytes.toString(tableName) + ServiceConstants.INDEX_SUFFIX);
 
         // 更新索引表的数据信息
         List<Map<String, byte[]>> valuesList = new ArrayList<>(hitIndexes.size() * valuesMap.size());
-        for (String hitIndex : hitIndexes) {
+        for (HitIndex hitIndex : hitIndexes) {
             // 根据每个索引的信息更新索引表
             String[] qualifiers = hitIndex.split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
 

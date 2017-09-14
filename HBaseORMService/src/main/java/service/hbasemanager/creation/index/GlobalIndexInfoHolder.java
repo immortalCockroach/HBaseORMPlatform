@@ -7,6 +7,8 @@ import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import service.constants.ServiceConstants;
+import service.hbasemanager.entity.HitIndex;
+import service.hbasemanager.entity.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
@@ -23,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 全局索引表的维护
  * 全局索引表的信息为
- * tableName——col1_col2_col3col4
+ * tableName——col1_col2_col3,col4(一个表的索引数量不能超过128)
  * 内存map的信息和上面类似，只是索引的信息放在Set中
  * Created by immortalCockroach on 9/1/17.
  */
@@ -38,7 +40,7 @@ public class GlobalIndexInfoHolder {
     private TableGetService getter;
 
     // 全局索引表，String为数据表名字
-    private ConcurrentHashMap<String, Set<String>> globalIndexMap;
+    private ConcurrentHashMap<String, List<Index>> globalIndexMap;
 
     /**
      * Spring注入后使用该方法加载数据表的索引信息
@@ -60,9 +62,9 @@ public class GlobalIndexInfoHolder {
                 String[] indexesColumns = Bytes.toString(row.getBytes
                         (ServiceConstants.GLOBAL_INDEX_TABLE_COL)).split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_SEPARATOR);
 
-                Set<String> indexes = new HashSet<>();
-                for (String indexColumn : indexesColumns) {
-                    indexes.add(indexColumn);
+                List<Index> indexes = new ArrayList<>(indexesColumns.length);
+                for (int j = 0; j <= indexesColumns.length; j++) {
+                    indexes.add(new Index(indexesColumns[j], j));
                 }
 
                 globalIndexMap.put(Bytes.toString(rowkey), indexes);
@@ -74,25 +76,23 @@ public class GlobalIndexInfoHolder {
      * 判断索引信息是否存在，前缀匹配也算是存在
      *
      * @param qualifiers
-     * @return
+     * @return 代表当前索引的序号, 从0开始，为了多级索引查询的便利首部， -1代表已经存在
      */
-    public boolean indexExists(byte[] tableName, String[] qualifiers) {
+    public int indexExists(byte[] tableName, String[] qualifiers) {
         String index = getCombinedIndex(qualifiers);
-        Set<String> set = globalIndexMap.get(Bytes.toString(tableName));
-        if (set == null) {
-            return false;
+        List<Index> indexes = globalIndexMap.get(Bytes.toString(tableName));
+        if (indexes == null) {
+            return 0;
         }
 
-        if (set.contains(index)) {
-            return true;
-        }
         // 如果当前索引为某个联合索引的前缀 则也算存在
-        for (String existIndex : set) {
-            if (existIndex.startsWith(index)) {
-                return true;
+        for (Index existedIndex : indexes) {
+            if (existedIndex.duplicate(index)) {
+                return -1;
             }
         }
-        return false;
+
+        return indexes.size() > 128 ? -1 : indexes.size();
     }
 
     /**
@@ -101,10 +101,11 @@ public class GlobalIndexInfoHolder {
      * rowkey ------------ column(idxs)
      * tableName-----------col1_col2_col3,col4
      * 其中col1, col2为单列索引，col3,col4为联合索引
+     *
      * @param tableName  数据表的表明
      * @param qualifiers 索引列
      */
-    public void updateTableIndex(byte[] tableName, String[] qualifiers) {
+    public void updateGlobalTableIndex(byte[] tableName, String[] qualifiers) {
         PlainResult result = getter.read(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, tableName, new String[]{ServiceConstants.GLOBAL_INDEX_TABLE_COL});
         // 该表的第一个index
         if (result.getSize() == 0) {
@@ -127,14 +128,14 @@ public class GlobalIndexInfoHolder {
             lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes(newIndex));
             inserter.insert(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, lineMap);
         }
-        // 更新当前global_idx表维护的索引信息
-        Set<String> indexSet = globalIndexMap.get(Bytes.toString(tableName));
-        if (indexSet == null) {
-            indexSet = new HashSet<>();
-            globalIndexMap.put(Bytes.toString(tableName), indexSet);
+        // 更新ndex当前global_idx表维护的索引信息
+        List<Index> indexes = globalIndexMap.get(Bytes.toString(tableName));
+        if (indexes == null) {
+            indexes = new ArrayList<>();
+            globalIndexMap.put(Bytes.toString(tableName), indexes);
         }
 
-        indexSet.add(getCombinedIndex(qualifiers));
+        indexes.add(new Index(getCombinedIndex(qualifiers), indexes.size()));
     }
 
     private String getCombinedIndex(String[] qualifiers) {
@@ -151,47 +152,49 @@ public class GlobalIndexInfoHolder {
      * @param tableName 数据表的表名
      * @return
      */
-    public Set<String> getTableIndexes(byte[] tableName) {
+    public List<Index> getTableIndexes(byte[] tableName) {
         return globalIndexMap.get(Bytes.toString(tableName));
     }
 
     /**
-     * 根据表中的索引和插入对应的qualifers，判断生效的索引
+     * 根据表中的索引和插入对应的qualifiers，判断生效的索引
      * 对tableName对应的globalMap中的索引集合中的每个索引做考察
-     * 所以索引的每个索引列都在qualifers中，则该索引命中
+     * 如果索引的索引列前缀在qualifiers中，则代表hit
      *
      * @param tableName
      * @param qualifiers
      * @return
      */
-    public List<String> getHitIndexesWithinQualifiers(byte[] tableName, String[] qualifiers) {
+    public List<HitIndex> getHitIndexesWithinQualifiersWhenInsert(byte[] tableName, String[] qualifiers) {
 
-        Set<String> existedIndexes = getTableIndexes(tableName);
+        List<Index> existedIndexes = getTableIndexes(tableName);
         if (existedIndexes == null || existedIndexes.size() == 0) {
             return new ArrayList<>();
         }
 
-        List<String> res = new ArrayList<>();
+        List<HitIndex> res = new ArrayList<>();
         // qualifiers的集合
         Set<String> operColumns = new HashSet<>();
         for (String qualifier : qualifiers) {
             operColumns.add(qualifier);
         }
 
-        for (String existedIndex : existedIndexes) {
-            String[] columns = existedIndex.split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
-            boolean hit = true;
-            // 如果每个索引的列都在qualifiers中，则代表有存在的索引命中
-            for (String column : columns) {
-                if (!operColumns.contains(column)) {
-                    hit = false;
+        for (Index existedIndex : existedIndexes) {
+            List<String> indexColumns = existedIndex.getIndexColumnList();
+
+            int hitNum = 0;
+            // 判断每个索引的最大命中前缀，如果大于0则代表命中，需要更新
+            for (int i = 0; i <= indexColumns.size() - 1; i++) {
+                if (operColumns.contains(indexColumns.get(i))) {
+                    hitNum++;
+                } else {
                     break;
                 }
             }
-
-            if (hit) {
-                res.add(existedIndex);
+            if (hitNum > 0) {
+                res.add(new HitIndex(indexColumns, existedIndex.getIndexNum(), hitNum));
             }
+
         }
         return res;
     }

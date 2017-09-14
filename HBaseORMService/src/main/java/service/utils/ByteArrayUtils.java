@@ -63,11 +63,12 @@ public class ByteArrayUtils {
      * @param length    原先list中的总byte的数量
      * @return
      */
-    public static byte[] concat(byte[][] list, byte separator, int length) {
+    public static byte[] concat(byte[][] list, byte separator, int length, byte indexNum) {
         int size = list.length;
-        // length个字节的长度 加上size - 1个分隔符的长度
-        byte[] res = new byte[length + size - 1];
-        int index = 0;
+        // length个字节的长度 加上size - 1个分隔符的长度以及开头长度为1的索引序号
+        byte[] res = new byte[length + size];
+        res[0] = indexNum;
+        int index = 1;
         for (int i = 0; i <= size - 2; i++) {
             byte[] col = list[i];
 
@@ -153,23 +154,23 @@ public class ByteArrayUtils {
      * @param qualifiers
      * @return
      */
-    public static byte[] generateIndexRowKey(JSONObject line, String[] qualifiers, byte separator, byte escape, byte nul) {
+    public static byte[] generateIndexRowKey(JSONObject line, String[] qualifiers, byte separator, byte escape, byte nul, byte indexNum) {
         // 将一个数据变为col1 col2 ... col1v col2v ... rowkey的形式
         byte[][] list = jsonObjectToByteArrayList(line, qualifiers);
         // 将每个byte[]做转义字符处理
         int length = preProcessEscapeCharacterOfBytes(list, separator, escape, nul);
         // 将list使用separator进行拼接
-        byte[] indexRowkey = concat(list, separator, length);
+        byte[] indexRowkey = concat(list, separator, length, indexNum);
         return indexRowkey;
     }
 
-    public static byte[] generateIndexRowKey(Map<String, byte[]> line, String[] qualifiers, byte separator, byte escape, byte nul) {
+    public static byte[] generateIndexRowKey(Map<String, byte[]> line, String[] qualifiers, byte separator, byte escape, byte nul, byte indexNum) {
         // 将一个数据变为col1 col2 ... col1v col2v ... rowkey的形式
         byte[][] list = jsonObjectToByteArrayList(line, qualifiers);
         // 将每个byte[]做转义字符处理
         int length = preProcessEscapeCharacterOfBytes(list, separator, escape, nul);
         // 将list使用separator进行拼接
-        byte[] indexRowkey = concat(list, separator, length);
+        byte[] indexRowkey = concat(list, separator, length, indexNum);
         return indexRowkey;
     }
 
