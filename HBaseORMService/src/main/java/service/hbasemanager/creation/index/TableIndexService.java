@@ -5,14 +5,17 @@ import com.alibaba.fastjson.JSONArray;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
+import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.springframework.stereotype.Service;
 import service.constants.ServiceConstants;
-import service.hbasemanager.entity.HitIndex;
+import service.hbasemanager.entity.Index;
 import service.hbasemanager.insert.TableInsertService;
+import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.utils.ByteArrayUtils;
+import service.utils.IndexUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -29,6 +32,9 @@ public class TableIndexService {
 
     @Resource
     private TableInsertService inserter;
+
+    @Resource
+    private TableGetService getter;
 
     @Resource
     private TableScanService scanner;
@@ -61,11 +67,11 @@ public class TableIndexService {
 
         // 没有数据则在global_idx表中创建对对应的信息即可
         if (size == 0) {
-            indexInfoHolder.updateGlobalTableIndex(tableName, qualifiers);
+            this.updateIndexTable(indexTableName, qualifiers);
             return ResultUtil.getSuccessBaseResult();
         } else {
             // 更新内存map的数据
-            indexInfoHolder.updateGlobalTableIndex(tableName, qualifiers);
+            this.updateIndexTable(indexTableName, qualifiers);
             JSONArray rows = res.getData();
             List<Map<String, byte[]>> valuesList = new ArrayList<>(size);
             // 将数据转换为对应的形式然后put到index表中
@@ -89,6 +95,37 @@ public class TableIndexService {
     }
 
     /**
+     * 新建索引时更新对应的索引表
+     * @param indexTableName
+     * @param qualifiers
+     */
+    private void updateIndexTable(byte[] indexTableName, String[] qualifiers) {
+        PlainResult result = getter.read(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, indexTableName, new String[]{ServiceConstants.GLOBAL_INDEX_TABLE_COL});
+        // 该表的第一个index
+        if (result.getSize() == 0) {
+            String combinedIndex = IndexUtils.getCombinedIndex(qualifiers);
+
+            Map<String, byte[]> lineMap = new HashMap<>();
+            lineMap.put(CommonConstants.ROW_KEY, indexTableName);
+            lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes(combinedIndex));
+            inserter.insert(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, lineMap);
+        } else {
+            // 该表已经有索引，此处将其拼接到后面
+            String combinedIndex = IndexUtils.getCombinedIndex(qualifiers);
+
+            byte[] origin = result.getData().getBytes(ServiceConstants.GLOBAL_INDEX_TABLE_COL);
+            String originIndex = Bytes.toString(origin);
+            String newIndex = originIndex + ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_SEPARATOR + combinedIndex;
+
+            Map<String, byte[]> lineMap = new HashMap<>();
+            lineMap.put(CommonConstants.ROW_KEY, indexTableName);
+            lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes(newIndex));
+            inserter.insert(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, lineMap);
+        }
+        indexInfoHolder.updateGlobalMap(indexTableName, qualifiers);
+    }
+
+    /**
      * 当数据插入时根据命中的索引信息更新对应的索引表
      *
      * @param tableName
@@ -96,20 +133,20 @@ public class TableIndexService {
      * @param hitIndexes
      * @return
      */
-    public BaseResult updateIndexWhenInsert(byte[] tableName, List<Map<String, byte[]>> valuesMap, List<HitIndex>
+    public BaseResult updateIndexWhenInsert(byte[] tableName, List<Map<String, byte[]>> valuesMap, List<Index>
             hitIndexes) {
         byte[] indexTableName = Bytes.toBytes(Bytes.toString(tableName) + ServiceConstants.INDEX_SUFFIX);
 
         // 更新索引表的数据信息
         List<Map<String, byte[]>> valuesList = new ArrayList<>(hitIndexes.size() * valuesMap.size());
-        for (HitIndex hitIndex : hitIndexes) {
+        for (Index hitIndex : hitIndexes) {
             // 根据每个索引的信息更新索引表
-            String[] qualifiers = hitIndex.split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
+            String[] qualifiers = hitIndex.getIndexColumnList().toArray(new String[]{});
 
             for (Map<String, byte[]> row : valuesMap) {
                 // 将每一行的数据按照当前索引qualifiers进行拼接
                 byte[] indexRowKey = ByteArrayUtils.generateIndexRowKey(row, qualifiers, ServiceConstants.EOT,
-                        ServiceConstants.ESC, ServiceConstants.NUL);
+                        ServiceConstants.ESC, ServiceConstants.NUL, (byte) hitIndex.getIndexNum());
 
                 Map<String, byte[]> lineMap = new HashMap<>(2);
                 lineMap.put(CommonConstants.ROW_KEY, indexRowKey);
@@ -122,6 +159,24 @@ public class TableIndexService {
         BaseResult updateIndexResult = inserter.insertBatch(indexTableName, valuesList);
         return updateIndexResult;
 
+    }
+
+    /**
+     * 根据表中的索引和插入对应的qualifiers，判断生效的索引
+     * 对tableName对应的globalMap中的索引集合中的每个索引做考察
+     * 如果索引的索引列前缀在qualifiers中，则代表hit
+     *
+     * @param tableName
+     * @param qualifiers
+     * @return
+     */
+    public List<Index> getHitIndexesWithinQualifiersWhenInsert(byte[] tableName, String[] qualifiers) {
+
+        List<Index> existedIndexes = indexInfoHolder.getTableIndexes(tableName);
+        if (existedIndexes == null || existedIndexes.size() == 0) {
+            return new ArrayList<>();
+        }
+        return IndexUtils.getHitIndexesWithinQualifiersWhenInsert(tableName, qualifiers, existedIndexes);
     }
 
 }

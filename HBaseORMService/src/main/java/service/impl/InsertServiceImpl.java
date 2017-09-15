@@ -8,6 +8,7 @@ import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
 import service.hbasemanager.creation.index.TableIndexService;
 import service.hbasemanager.entity.HitIndex;
+import service.hbasemanager.entity.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.utils.HBaseTableUtils;
 
@@ -48,7 +49,7 @@ public class InsertServiceImpl implements InsertService {
             return ResultUtil.getFailedBaseResult("插入数据错误，请稍后重试");
         }
         // 获得命中的索引
-        List<HitIndex> hitIndexes = indexInfoHolder.getHitIndexesWithinQualifiersWhenInsert(tableName, insertParam
+        List<Index> hitIndexes = tableIndexService.getHitIndexesWithinQualifiersWhenInsert(tableName, insertParam
                 .getQualifiers());
         // 代表有索引命中了
         if (hitIndexes != null && hitIndexes.size() > 0) {

@@ -42,4 +42,6 @@ public class ServiceConstants {
 
     // 是否使用索引(查询，插入等) 可以作为测试时使用
     public static final Boolean USE_INDEX = true;
+
+    public static final int MAX_TABLE_INDEX_COUNT = 128;
 }

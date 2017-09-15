@@ -1,7 +1,5 @@
 package com.immortalcockroach.hbaseorm.constant;
 
-import com.immortalcockroach.hbaseorm.util.Bytes;
-
 /**
  * Created by immortalCockRoach on 2016-06-22.
  */
@@ -29,7 +27,6 @@ public class CommonConstants {
     public static final String AUTO_INCREMENT = "smallAutoIncrement";
     public static final int SPLIT_COUNT = 3;
     private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
 
 
     // 不可初始化

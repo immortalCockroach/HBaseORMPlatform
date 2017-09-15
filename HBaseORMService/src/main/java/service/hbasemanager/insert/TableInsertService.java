@@ -62,6 +62,12 @@ public class TableInsertService {
         return ResultUtil.getSuccessBaseResult();
     }
 
+    /**
+     * 插入单行
+     * @param tableName
+     * @param values
+     * @return
+     */
     public BaseResult insert(byte[] tableName, Map<String, byte[]> values) {
 
         Connection connection = HBaseConnectionPool.getConnection();

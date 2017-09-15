@@ -4,7 +4,9 @@ import java.util.List;
 
 /**
  * 代表一个索引被部分或者全部命中
+ * 由于hitNum目前没有用上，暂时deprecated
  */
+@Deprecated
 public class HitIndex {
     // 构成这个索引的列信息，和索引构建时列的顺序相同
     private List<String> indexColumnList;
