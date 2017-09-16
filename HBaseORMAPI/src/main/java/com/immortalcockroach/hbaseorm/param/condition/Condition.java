@@ -10,6 +10,11 @@ public class Condition implements Serializable {
     private List<Expression> expressions;
     private List<Integer> logicOperators;
 
+    public Condition() {
+
+    }
+
+
     public List<Expression> getExpressions() {
         return expressions;
     }
@@ -26,7 +31,4 @@ public class Condition implements Serializable {
         this.logicOperators = logicOperators;
     }
 
-    public Condition() {
-
-    }
 }

@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class Expression implements Serializable {
     private static final long serialVersionUID = 6799766180225702749L;
-    private byte[] columns;
+    private String columns;
     private Integer arithmeticOperator;
     private byte[] values;
 
@@ -12,18 +12,18 @@ public class Expression implements Serializable {
 
     }
 
-    public Expression(byte[] columns, Integer arithmeticOperator, byte[] values) {
+    public Expression(String columns, Integer arithmeticOperator, byte[] values) {
 
         this.columns = columns;
         this.arithmeticOperator = arithmeticOperator;
         this.values = values;
     }
 
-    public byte[] getColumns() {
+    public String getColumns() {
         return columns;
     }
 
-    public void setColumns(byte[] columns) {
+    public void setColumns(String columns) {
         this.columns = columns;
     }
 

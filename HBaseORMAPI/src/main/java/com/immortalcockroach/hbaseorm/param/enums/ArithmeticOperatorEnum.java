@@ -1,9 +1,12 @@
 package com.immortalcockroach.hbaseorm.param.enums;
 
 public enum ArithmeticOperatorEnum {
-    AND(0, "&&"),
-    OR(1, "||"),
-    NOT(2, "!");
+    EQ(0, "="),
+    NEQ(1, "!="),
+    LT(2, "<"),
+    GT(3, ">"),
+    LE(4, "="),
+    GE(5, "=");
 
     private int id;
     private String name;
@@ -11,14 +14,5 @@ public enum ArithmeticOperatorEnum {
     ArithmeticOperatorEnum(int id, String name) {
         this.id = id;
         this.name = name;
-    }
-
-    public static ArithmeticOperatorEnum getArithmeticOperatorFromId(int id) {
-        for (ArithmeticOperatorEnum arithmeticOperator : ArithmeticOperatorEnum.values()) {
-            if (arithmeticOperator.id == id) {
-                return arithmeticOperator;
-            }
-        }
-        return null;
     }
 }
