@@ -13,6 +13,14 @@ public enum LogicalOperatorEnum {
         this.name = name;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public static LogicalOperatorEnum getLogicalOperatorEnumFromId(int id) {
         for (LogicalOperatorEnum logicalOperatorEnum : LogicalOperatorEnum.values()) {
             if (logicalOperatorEnum.id == id) {

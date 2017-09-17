@@ -1,6 +1,9 @@
 package com.immortalcockroach.hbaseorm.param.condition;
 
+import com.immortalcockroach.hbaseorm.param.enums.LogicalOperatorEnum;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Condition implements Serializable {
@@ -29,6 +32,22 @@ public class Condition implements Serializable {
 
     public void setLogicOperators(List<Integer> logicOperators) {
         this.logicOperators = logicOperators;
+    }
+
+    public Condition add(Expression expression) {
+        expressions.add(expression);
+        if (expressions.size() > 1) {
+            logicOperators.add(LogicalOperatorEnum.AND.getId());
+        }
+        return this;
+    }
+
+    public List<String> getQueryColumns() {
+        List<String> columns = new ArrayList<>();
+        for (Expression expression : expressions) {
+            columns.add(expression.getColumn());
+        }
+        return columns;
     }
 
 }
