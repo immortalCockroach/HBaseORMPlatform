@@ -126,6 +126,10 @@ public class TableScanService {
         return this.scan(tableName, null, null, null, null);
     }
 
+    public ListResult scan(byte[] tableName, byte[] prefix) {
+        return this.scan(tableName, null, null, prefix, null);
+    }
+
     public ListResult scan(byte[] tableName, String[] qualifers) {
         return this.scan(tableName, null, null, null, qualifers);
     }

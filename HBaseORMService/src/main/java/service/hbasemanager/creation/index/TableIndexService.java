@@ -135,7 +135,7 @@ public class TableIndexService {
      */
     public BaseResult updateIndexWhenInsert(byte[] tableName, List<Map<String, byte[]>> valuesMap, List<Index>
             hitIndexes) {
-        byte[] indexTableName = Bytes.toBytes(Bytes.toString(tableName) + ServiceConstants.INDEX_SUFFIX);
+        byte[] indexTableName = ByteArrayUtils.getIndexTableName(tableName);
 
         // 更新索引表的数据信息
         List<Map<String, byte[]>> valuesList = new ArrayList<>(hitIndexes.size() * valuesMap.size());
@@ -162,9 +162,8 @@ public class TableIndexService {
     }
 
     /**
-     * 根据表中的索引和插入对应的qualifiers，判断生效的索引
-     * 对tableName对应的globalMap中的索引集合中的每个索引做考察
-     * 如果索引的索引列前缀在qualifiers中，则代表hit
+     * 根据表中的索引和插入对应的qualifiers，判断需要更新的索引
+     * 如果某个索引中包含qualifers的列，则代表hit
      *
      * @param tableName
      * @param qualifiers

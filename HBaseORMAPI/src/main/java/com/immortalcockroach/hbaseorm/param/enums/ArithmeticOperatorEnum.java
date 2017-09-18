@@ -5,8 +5,8 @@ public enum ArithmeticOperatorEnum {
     NEQ(1, "!="),
     LT(2, "<"),
     GT(3, ">"),
-    LE(4, "="),
-    GE(5, "=");
+    LE(4, "<="),
+    GE(5, ">=");
 
     private int id;
     private String name;

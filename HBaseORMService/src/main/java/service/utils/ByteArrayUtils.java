@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import org.apache.commons.lang.ArrayUtils;
+import service.constants.ServiceConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -202,7 +203,9 @@ public class ByteArrayUtils {
     public static byte[][] splitArrayWithStandAloneSeprator(byte[] array, byte separator, byte escape) {
         List<byte[]> list = new ArrayList<>();
         int size = array.length;
-        int start = 0, index = 0;
+        // 索引的序号
+        list.add(new byte[]{array[0]});
+        int start = 1, index = 1;
         while (index <= size - 1) {
             byte content = array[index];
             if (content == separator) {
@@ -241,7 +244,8 @@ public class ByteArrayUtils {
      */
     public static void removeEscapeCharacter(byte[][] array, byte escape, byte nul) {
         int size = array.length;
-        for (int i = 0; i <= size - 1; i++) {
+        // 0的位置为索引的序号 此处跳过
+        for (int i = 1; i <= size - 1; i++) {
             byte[] tmp = array[i];
             // 原先为null的列单独处理
             if (tmp.length == 2 && tmp[0] == escape && tmp[1] == nul) {
@@ -264,6 +268,11 @@ public class ByteArrayUtils {
                 array[i] = ArrayUtils.toPrimitive(newArray);
             }
         }
+
+    }
+
+    public static byte[] getIndexTableName(byte[] tableName) {
+        return Bytes.toBytes(Bytes.toString(tableName) + ServiceConstants.INDEX_SUFFIX);
 
     }
 }

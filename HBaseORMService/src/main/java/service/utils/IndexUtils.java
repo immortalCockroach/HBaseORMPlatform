@@ -45,7 +45,6 @@ public class IndexUtils {
             for (int i = 0; i <= indexColumns.size() - 1; i++) {
                 if (operColumns.contains(indexColumns.get(i))) {
                     hitNum++;
-                } else {
                     break;
                 }
             }
@@ -59,12 +58,16 @@ public class IndexUtils {
 
     /**
      * 给定表的所有索引以及查询列，求最优的索引结构
+     *
      * @param existedIndex
      * @param queryColumns
      * @return
      */
-    public static int[] getHitIndexWhenQuery(List<List<String>> existedIndex, List<String> queryColumns) {
+    public static int[] getHitIndexWhenQuery(List<Index> existedIndex, List<String> queryColumns) {
         int indexCount = existedIndex.size();
+        if (existedIndex == null || existedIndex.size() == 0 || queryColumns == null || queryColumns.size() == 0) {
+            return new int[indexCount];
+        }
 
         // 保存每个index最多被匹配的列数
         int[] maxRes = new int[indexCount];
@@ -72,7 +75,11 @@ public class IndexUtils {
         int idx = 0;
         // 记录每个字符串的匹配次数
         Map<String, Integer> columnCountMap = new HashMap<>();
-        for (List<String> index : existedIndex) {
+        List<List<String>> indexes = new ArrayList<>();
+        for (Index index : existedIndex) {
+            indexes.add(index.getIndexColumnList());
+        }
+        for (List<String> index : indexes) {
             int hitCount = 0;
             // 计算每个index最多被queryColumns匹配的数量，保存到res中
             for (String column : index) {
@@ -95,7 +102,7 @@ public class IndexUtils {
             return maxRes;
         }
         int[] res = new int[indexCount];
-        dfs(0, res, maxRes, existedIndex, queryColumns, columnCountMap);
+        dfs(0, res, maxRes, indexes, queryColumns, columnCountMap);
         return res;
     }
 
@@ -189,5 +196,14 @@ public class IndexUtils {
             }
         }
         return count;
+    }
+
+    /**
+     * 查询是否命中了索引
+     * @param hitNum
+     * @return
+     */
+    public static boolean hitAny(int[] hitNum) {
+        return sum(hitNum) != 0;
     }
 }

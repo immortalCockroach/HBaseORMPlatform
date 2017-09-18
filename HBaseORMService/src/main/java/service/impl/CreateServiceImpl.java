@@ -13,6 +13,7 @@ import service.hbasemanager.creation.index.TableIndexService;
 import service.hbasemanager.creation.table.TableCreateService;
 import service.hbasemanager.utils.HBaseClusterUtils;
 import service.hbasemanager.utils.HBaseTableUtils;
+import service.utils.ByteArrayUtils;
 
 import javax.annotation.Resource;
 
@@ -75,7 +76,7 @@ public class CreateServiceImpl implements CreateService {
             return ResultUtil.getFailedBaseResult("数据表" + Bytes.toString(tableName) + "不存在");
         }
 
-        byte[] indexTableName = Bytes.toBytes(Bytes.toString(tableName) + ServiceConstants.INDEX_SUFFIX);
+        byte[] indexTableName = ByteArrayUtils.getIndexTableName(tableName);
         // 检测表是否存在
         if (!HBaseTableUtils.tableExists(indexTableName)) {
             // 索引表不存在则创建索引表

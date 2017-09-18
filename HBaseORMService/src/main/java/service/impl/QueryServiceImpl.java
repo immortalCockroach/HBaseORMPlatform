@@ -2,17 +2,22 @@ package service.impl;
 
 import com.immortalcockroach.hbaseorm.api.QueryService;
 import com.immortalcockroach.hbaseorm.param.QueryParam;
+import com.immortalcockroach.hbaseorm.param.condition.Expression;
 import com.immortalcockroach.hbaseorm.result.AbstractResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
-import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
-import org.apache.commons.lang.ArrayUtils;
+import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
+import service.hbasemanager.entity.HitIndexes;
+import service.hbasemanager.entity.Index;
 import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
+import service.utils.ByteArrayUtils;
+import service.utils.IndexUtils;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 查询API的实现，目前只有范围查询，后面会加上各种过滤的条件
@@ -26,6 +31,9 @@ public class QueryServiceImpl implements QueryService {
     @Resource
     private TableGetService getter;
 
+    @Resource
+    private GlobalIndexInfoHolder indexInfoHolder;
+
     @Override
     public AbstractResult query(QueryParam queryParam) {
         byte[] tableName = queryParam.getTableName();
@@ -33,7 +41,38 @@ public class QueryServiceImpl implements QueryService {
         if (!HBaseTableUtils.tableExists(tableName)) {
             return ResultUtil.getFailedPlainResult("表" + Bytes.toString(tableName) + "不存在");
         }
-        byte[] startKey = queryParam.getStartKey();
+        // 存在的索引信息
+        List<Index> existedIndex = indexInfoHolder.getTableIndexes(tableName);
+        // 查询的表达式
+        List<Expression> queryExpressions = queryParam.getCondition().getExpressions();
+
+        // 获得每个索引的命中信息
+        int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, queryParam.getQueryColumns());
+        // 直接全表扫描
+        if (!IndexUtils.hitAny(hitIndexNums)) {
+
+        } else {
+            HitIndexes hitIndexes = new HitIndexes(existedIndex, queryExpressions, hitIndexNums, queryParam.getQualifiers());
+            // size代表该表的索引数量
+            int size = hitIndexNums.length;
+
+            for (int i = 0; i <= size - 1; i++) {
+                // 代表该索引没有被命中，跳过
+                if (hitIndexNums[i] == 0) {
+                    continue;
+                }
+                byte[] prefix = hitIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i]);
+
+                ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), prefix);
+                if (!result.getSuccess() || result.getSize() == 0) {
+                    return ResultUtil.getEmptyListResult();
+                }
+            }
+        }
+
+        return null;
+
+/*        byte[] startKey = queryParam.getStartKey();
         byte[] endKey = queryParam.getEndKey();
         // 如果key有null的情况，或者两个key不等。则为范围查询
         if (ArrayUtils.isEmpty(startKey) || ArrayUtils.isEmpty(endKey) || !ArrayUtils.isEquals(startKey, endKey)) {
@@ -58,7 +97,7 @@ public class QueryServiceImpl implements QueryService {
         } else {
             // 2个key相等，单个查询
             return getter.read(queryParam.getTableName(), queryParam.getStartKey(), queryParam.getQualifiers());
-        }
+        }*/
 
     }
 }

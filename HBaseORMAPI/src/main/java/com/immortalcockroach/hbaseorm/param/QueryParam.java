@@ -4,6 +4,7 @@ package com.immortalcockroach.hbaseorm.param;
 import com.immortalcockroach.hbaseorm.param.condition.Condition;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 根据查询的条件构建query，目前只有query只有单个扫描和多个扫描以及列选择，后续添加新功能
@@ -43,6 +44,10 @@ public class QueryParam implements Serializable {
 
     public Condition getCondition() {
         return condition;
+    }
+
+    public List<String> getQueryColumns() {
+        return this.condition.getQueryColumns();
     }
 
     /**
