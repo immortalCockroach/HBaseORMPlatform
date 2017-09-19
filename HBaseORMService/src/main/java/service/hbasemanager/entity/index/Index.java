@@ -1,4 +1,4 @@
-package service.hbasemanager.entity;
+package service.hbasemanager.entity.index;
 
 import service.constants.ServiceConstants;
 

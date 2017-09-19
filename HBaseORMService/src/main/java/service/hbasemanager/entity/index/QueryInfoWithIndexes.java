@@ -1,4 +1,4 @@
-package service.hbasemanager.entity;
+package service.hbasemanager.entity.index;
 
 import com.immortalcockroach.hbaseorm.param.condition.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
@@ -6,46 +6,36 @@ import service.constants.ServiceConstants;
 import service.utils.ByteArrayUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 代表一个索引被部分或者全部命中,用于query查询时的使用
  */
-public class HitIndexes {
+public class QueryInfoWithIndexes {
     // 构成这个索引的列信息，和索引构建时列的顺序相同
     private List<Index> indexColumnList;
 
     // 查询列对应的表达式
     private Map<String, Expression> expressionMap;
 
-    // 剩余的列，需要回表查询
-    private Set<String> leftColumns;
 
-    public HitIndexes(List<Index> indexColumnList, List<Expression> expressions, int[] hitNum, String[] qualifiers) {
+    public QueryInfoWithIndexes(List<Index> indexColumnList, List<Expression> expressions, int[] hitNum) {
         this.indexColumnList = indexColumnList;
         expressionMap = new HashMap<>();
-        leftColumns = new HashSet<>(Arrays.asList(qualifiers));
 
-        Set<String> indexColumns = new HashSet<>();
         for (Expression expression : expressions) {
             expressionMap.put(expression.getColumn(), expression);
         }
+    }
 
-        // 查询的列和命中的index的所有列的差集即为需要回表查询的列
-        int size = hitNum.length;
-        for (int i = 0; i <= size - 1; i++) {
-            // 非命中的index跳过
-            if (hitNum[i] == 0) {
-                continue;
-            }
-            indexColumns.addAll(indexColumnList.get(i).getIndexColumnList());
-        }
-        leftColumns.removeAll(indexColumnList);
+    public List<Index> getIndexColumnList() {
+        return indexColumnList;
+    }
+
+    public Map<String, Expression> getExpressionMap() {
+        return expressionMap;
     }
 
     /**
@@ -61,8 +51,10 @@ public class HitIndexes {
         for (int j = 0; j <= hitNum - 1; j++) {
             String column = index.getIndexColumnList().get(j);
             Expression expression = expressionMap.get(column);
-            // 索引只能用到最后一个等值查询为止
+            // 索引只能用到第一个非等值查询为止
             if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
+                linePrefix.put(column, expression.getValues());
+                qualifiers.add(column);
                 break;
             } else {
                 linePrefix.put(column, expression.getValues());
@@ -74,6 +66,7 @@ public class HitIndexes {
 
     /**
      * 命中索引中等值的前缀的数量
+     *
      * @param i
      * @param hitNum
      * @return
@@ -86,6 +79,7 @@ public class HitIndexes {
             Expression expression = expressionMap.get(index.getIndexColumnList().get(j));
             // 索引只能用到最后一个等值查询为止
             if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
+                count++;
                 break;
             } else {
                 count++;

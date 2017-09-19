@@ -2,6 +2,7 @@ package service.utils;
 
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
+import com.immortalcockroach.hbaseorm.param.condition.Expression;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import org.apache.commons.lang.ArrayUtils;
 import service.constants.ServiceConstants;
@@ -66,7 +67,7 @@ public class ByteArrayUtils {
      */
     public static byte[] concat(byte[][] list, byte separator, int length, byte indexNum) {
         int size = list.length;
-        // length个字节的长度 加上size - 1个分隔符的长度以及开头长度为1的索引序号
+        // length个字节的长度 加上size - 1个分隔符的长度以及开头长度为1字节的索引序号
         byte[] res = new byte[length + size];
         res[0] = indexNum;
         int index = 1;
@@ -274,5 +275,17 @@ public class ByteArrayUtils {
     public static byte[] getIndexTableName(byte[] tableName) {
         return Bytes.toBytes(Bytes.toString(tableName) + ServiceConstants.INDEX_SUFFIX);
 
+    }
+
+    /**
+     * 根据表达式和value进行检查
+     *
+     * @param value
+     * @param expression
+     * @return
+     */
+    public static boolean checkValueRange(byte[] value, Expression expression) {
+        // TODO: 2017-09-19 实现byte[]和expression的比较
+        return false;
     }
 }

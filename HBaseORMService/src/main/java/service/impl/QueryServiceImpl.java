@@ -2,14 +2,16 @@ package service.impl;
 
 import com.immortalcockroach.hbaseorm.api.QueryService;
 import com.immortalcockroach.hbaseorm.param.QueryParam;
-import com.immortalcockroach.hbaseorm.param.condition.Expression;
 import com.immortalcockroach.hbaseorm.result.AbstractResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
-import service.hbasemanager.entity.HitIndexes;
-import service.hbasemanager.entity.Index;
+import service.hbasemanager.entity.filter.IndexLineFilter;
+import service.hbasemanager.entity.index.Index;
+import service.hbasemanager.entity.index.QueryInfoWithIndexes;
+import service.hbasemanager.entity.indexresult.IndexScanResult;
+import service.hbasemanager.entity.indexresult.MergedResult;
 import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
@@ -17,7 +19,10 @@ import service.utils.ByteArrayUtils;
 import service.utils.IndexUtils;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 查询API的实现，目前只有范围查询，后面会加上各种过滤的条件
@@ -41,10 +46,11 @@ public class QueryServiceImpl implements QueryService {
         if (!HBaseTableUtils.tableExists(tableName)) {
             return ResultUtil.getFailedPlainResult("表" + Bytes.toString(tableName) + "不存在");
         }
+
         // 存在的索引信息
         List<Index> existedIndex = indexInfoHolder.getTableIndexes(tableName);
-        // 查询的表达式
-        List<Expression> queryExpressions = queryParam.getCondition().getExpressions();
+
+        Set<String> qualifiers = new HashSet<>(Arrays.asList(queryParam.getQualifiers()));
 
         // 获得每个索引的命中信息
         int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, queryParam.getQueryColumns());
@@ -52,22 +58,33 @@ public class QueryServiceImpl implements QueryService {
         if (!IndexUtils.hitAny(hitIndexNums)) {
 
         } else {
-            HitIndexes hitIndexes = new HitIndexes(existedIndex, queryExpressions, hitIndexNums, queryParam.getQualifiers());
+            QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, queryParam.getCondition().getExpressions(), hitIndexNums);
             // size代表该表的索引数量
             int size = hitIndexNums.length;
-
+            MergedResult mergedResult = new MergedResult(qualifiers);
             for (int i = 0; i <= size - 1; i++) {
                 // 代表该索引没有被命中，跳过
                 if (hitIndexNums[i] == 0) {
                     continue;
                 }
-                byte[] prefix = hitIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i]);
-
-                ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), prefix);
+                // startKey
+                byte[] startKey = queryInfoWithIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i]);
+                byte[] endKey = new byte[]{(byte) (existedIndex.get(i).getIndexNum() + 1)};
+                ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), startKey, endKey);
                 if (!result.getSuccess() || result.getSize() == 0) {
                     return ResultUtil.getEmptyListResult();
                 }
+                IndexLineFilter filter = new IndexLineFilter(existedIndex.get(i), hitIndexNums[i], queryInfoWithIndexes.getExpressionMap(), qualifiers);
+                IndexScanResult res = filter.filter(result);
+                mergedResult.merge(res);
+                // 合并后结果为0，则直接返回list
+                if (mergedResult.getResultSize() == 0) {
+                    return ResultUtil.getEmptyListResult();
+                }
+
             }
+
+
         }
 
         return null;

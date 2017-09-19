@@ -1,7 +1,7 @@
 package service.utils;
 
 import service.constants.ServiceConstants;
-import service.hbasemanager.entity.Index;
+import service.hbasemanager.entity.index.Index;
 
 import java.util.ArrayList;
 import java.util.HashMap;

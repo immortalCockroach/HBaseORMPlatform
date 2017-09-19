@@ -10,7 +10,7 @@ import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.springframework.stereotype.Service;
 import service.constants.ServiceConstants;
-import service.hbasemanager.entity.Index;
+import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;

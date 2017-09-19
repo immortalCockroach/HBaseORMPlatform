@@ -6,7 +6,7 @@ import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import service.constants.ServiceConstants;
-import service.hbasemanager.entity.Index;
+import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
