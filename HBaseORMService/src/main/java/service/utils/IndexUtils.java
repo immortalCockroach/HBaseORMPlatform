@@ -167,6 +167,7 @@ public class IndexUtils {
      */
     private static boolean validate(Map<String, Integer> columnCountMap) {
         for (Integer count : columnCountMap.values()) {
+            // 此处为大于1是因为有的列在dfs时变为0
             if (count > 1) {
                 return false;
             }

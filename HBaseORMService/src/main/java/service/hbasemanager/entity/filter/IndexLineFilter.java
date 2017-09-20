@@ -31,15 +31,24 @@ public class IndexLineFilter {
         this.qualifiers = qualifiers;
     }
 
+    /**
+     * 将查询的结果，使用qualifiers和index对应的列进行过滤
+     * @param indexScanTmpRes
+     * @return
+     */
     public IndexScanResult filter(ListResult indexScanTmpRes) {
         JSONArray array = indexScanTmpRes.getData();
+        // scanResult中的line只保留查询的列
         IndexScanResult scanResult = new IndexScanResult(index.getIndexColumnList(), qualifiers);
         int size = array.size();
         for (int i = 0; i <= size - 1; i++) {
             JSONObject line = array.getJSONObject(i);
             byte[] rowkey = line.getBytes(CommonConstants.ROW_KEY);
+            // 将行键展开
             byte[][] splitArray = ByteArrayUtils.getByteListWithSeparator(rowkey, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL);
+            // 如果split之后的行符合expressions的标准，则加入ScanResult
             if (check(splitArray)) {
+                // 保留查询的列
                 scanResult.add(new IndexLine(splitArray, scanResult.getFilterColumn()));
             }
 

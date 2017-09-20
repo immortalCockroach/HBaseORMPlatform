@@ -15,7 +15,7 @@ public class IndexScanResult {
     private Set<ByteBuffer> rowkeys;
     // 行键与对应的行
     private Map<ByteBuffer, IndexLine> lineMap;
-    // 需要返回的列
+    // 查询结果中根据qualifiers筛出需要保留的列
     private Set<String> filterColumn;
 
     public IndexScanResult(List<String> indexColumns, Set<String> qualifiers) {

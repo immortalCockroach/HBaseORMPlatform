@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 索引表行键
+ * 索引表行键展开后的类
  */
 public class IndexLine {
     private byte[] rowkey;
@@ -16,6 +16,7 @@ public class IndexLine {
         int size = splitArray.length;
         for (int i = 1; i <= size - 2; i += 2) {
             String column = Bytes.toString(splitArray[i]);
+            // 保留在filterColumns中的列
             if (filterColumns.contains(column)) {
                 columnMap.put(column, splitArray[i + 1]);
             }
@@ -29,5 +30,23 @@ public class IndexLine {
 
     public Map<String, byte[]> getColumnMap() {
         return columnMap;
+    }
+
+    /**
+     * 将newLine合并到当前的line中
+     *
+     * @param newLine
+     */
+    public void mergeLine(IndexLine newLine) {
+        Map<String, byte[]> newData = newLine.getColumnMap();
+        for (Map.Entry<String, byte[]> entry : newData.entrySet()) {
+            String column = entry.getKey();
+            // 如果列没有在原先的行中则加入
+            if (columnMap.containsKey(column)) {
+                continue;
+            } else {
+                columnMap.put(column, entry.getValue());
+            }
+        }
     }
 }
