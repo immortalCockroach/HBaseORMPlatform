@@ -3,6 +3,7 @@ package service.hbasemanager.entity.index;
 import com.immortalcockroach.hbaseorm.param.condition.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
 import service.constants.ServiceConstants;
+import service.hbasemanager.entity.indexresult.TableScanParam;
 import service.utils.ByteArrayUtils;
 
 import java.util.ArrayList;
@@ -72,7 +73,7 @@ public class QueryInfoWithIndexes {
      *
      * @return
      */
-    public byte[] buildIndexTableQueryPrefix(int i, int hitNum) {
+    public TableScanParam buildIndexTableQueryPrefix(int i, int hitNum) {
         Index index = indexColumnList.get(i);
         Map<String, byte[]> linePrefix = new HashMap<>();
         List<String> qualifiers = new ArrayList<>();

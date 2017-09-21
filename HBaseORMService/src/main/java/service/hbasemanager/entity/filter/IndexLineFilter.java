@@ -88,6 +88,11 @@ public class IndexLineFilter {
         return true;
     }
 
+    /**
+     * 回表查询时的行check
+     * @param line
+     * @return
+     */
     public boolean check(JSONObject line) {
 
         for (String key : line.keySet()) {

@@ -15,6 +15,7 @@ import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.index.QueryInfoWithIndexes;
 import service.hbasemanager.entity.indexresult.IndexLine;
 import service.hbasemanager.entity.indexresult.MergedResult;
+import service.hbasemanager.entity.indexresult.TableScanParam;
 import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
@@ -75,10 +76,9 @@ public class QueryServiceImpl implements QueryService {
                 if (hitIndexNums[i] == 0) {
                     continue;
                 }
-                // startKey
-                byte[] startKey = queryInfoWithIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i]);
-                byte[] endKey = new byte[]{(byte) (existedIndex.get(i).getIndexNum() + 1)};
-                ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), startKey, endKey);
+                // TODO: 2017-09-21 根据索引命中信息构建index表的扫描
+                TableScanParam param = queryInfoWithIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i]);
+                ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), param);
                 if (!result.getSuccess() || result.getSize() == 0) {
                     return ResultUtil.getEmptyListResult();
                 }
