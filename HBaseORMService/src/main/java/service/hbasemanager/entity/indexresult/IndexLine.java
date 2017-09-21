@@ -1,5 +1,7 @@
 package service.hbasemanager.entity.indexresult;
 
+import com.alibaba.fastjson.JSONObject;
+import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 
 import java.util.Map;
@@ -48,5 +50,21 @@ public class IndexLine {
                 columnMap.put(column, entry.getValue());
             }
         }
+    }
+
+
+    public void mergeLine(JSONObject newLine) {
+        for (String key : newLine.keySet()) {
+            this.columnMap.put(key, newLine.getBytes(key));
+        }
+    }
+
+    public JSONObject toJSONObject() {
+        JSONObject res = new JSONObject();
+        for (Map.Entry<String, byte[]> entry : columnMap.entrySet()) {
+            res.put(entry.getKey(), entry.getValue());
+        }
+        res.put(CommonConstants.ROW_KEY, rowkey);
+        return res;
     }
 }

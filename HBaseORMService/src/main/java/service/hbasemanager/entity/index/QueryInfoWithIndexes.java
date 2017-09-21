@@ -7,8 +7,10 @@ import service.utils.ByteArrayUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 代表一个索引被部分或者全部命中,用于query查询时的使用
@@ -20,6 +22,9 @@ public class QueryInfoWithIndexes {
     // 查询列对应的表达式
     private Map<String, Expression> expressionMap;
 
+    // 未被索引命中的查询条件
+    private Set<String> unhitColumns;
+
 
     public QueryInfoWithIndexes(List<Index> indexColumnList, List<Expression> expressions, int[] hitNum) {
         this.indexColumnList = indexColumnList;
@@ -28,6 +33,29 @@ public class QueryInfoWithIndexes {
         for (Expression expression : expressions) {
             expressionMap.put(expression.getColumn(), expression);
         }
+
+        Set<String> allColumns = new HashSet<>();
+        // 根据hitNum将所有命中的索引加入到set中
+        int size = hitNum.length;
+        for (int i = 0; i <= size - 1; i++) {
+            if (hitNum[i] == 0) {
+                continue;
+            }
+            List<String> indexColumns = indexColumnList.get(i).getIndexColumnList();
+            for (int j = 0; i <= hitNum[i] - 1; j++) {
+                allColumns.add(indexColumns.get(j));
+            }
+        }
+        // 如果查询条件未命中，则加入unHitColumns，等待回表查询
+        for (String queryColumn : expressionMap.keySet()) {
+            if (!allColumns.contains(queryColumn)) {
+                unhitColumns.add(queryColumn);
+            }
+        }
+    }
+
+    public Set<String> getUnhitColumns() {
+        return unhitColumns;
     }
 
     public List<Index> getIndexColumnList() {

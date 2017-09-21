@@ -24,15 +24,23 @@ public class IndexLineFilter {
     private Map<String, Expression> expressionMap;
     private Set<String> qualifiers;
 
-    public IndexLineFilter(Index index, int hitNum, Map<String, Expression> expressionMap, Set<String> qualifiers) {
-        this.index = index;
-        this.hitNum = hitNum;
+    public IndexLineFilter(Map<String, Expression> expressionMap, Set<String> qualifiers) {
+
         this.expressionMap = expressionMap;
         this.qualifiers = qualifiers;
     }
 
+    public void setIndex(Index index) {
+        this.index = index;
+    }
+
+    public void setHitNum(int hitNum) {
+        this.hitNum = hitNum;
+    }
+
     /**
      * 将查询的结果，使用qualifiers和index对应的列进行过滤
+     *
      * @param indexScanTmpRes
      * @return
      */
@@ -58,6 +66,7 @@ public class IndexLineFilter {
 
     /**
      * 根据查询条件判断是否命中该行
+     *
      * @param splitArray
      * @return
      */
@@ -65,13 +74,28 @@ public class IndexLineFilter {
         int size = splitArray.length;
         // 跳过头部的index序号和尾部的rowkey
         for (int i = 1; i <= size - 2; i += 2) {
-            String column = Bytes.toString(splitArray[i]);
-            byte[] value = splitArray[i + 1];
-            Expression expression = expressionMap.get(column);
+            Expression expression = expressionMap.get(Bytes.toString(splitArray[i]));
             // 该列没有在查询条件中
             if (expression == null) {
                 continue;
             } else {
+                byte[] value = splitArray[i + 1];
+                if (!ByteArrayUtils.checkValueRange(value, expression)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean check(JSONObject line) {
+
+        for (String key : line.keySet()) {
+            Expression expression = expressionMap.get(key);
+            if (expression == null) {
+                continue;
+            } else {
+                byte[] value = line.getBytes(key);
                 if (!ByteArrayUtils.checkValueRange(value, expression)) {
                     return false;
                 }
