@@ -140,6 +140,6 @@ public class TableScanService {
     }
 
     public ListResult scan(byte[] tableName, TableScanParam param) {
-        return this.scan(tableName, param.getStartKey(), param.getEndKey(), param.getPrefix(), null);
+        return this.scan(tableName, param.getStartKey(), param.getEndKey(), null, null);
     }
 }

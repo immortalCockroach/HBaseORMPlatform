@@ -1,12 +1,29 @@
 package service.hbasemanager.entity.indexresult;
 
+import com.immortalcockroach.hbaseorm.param.condition.Expression;
+
 /**
  * 根据查询的condition 构造scan的startKey，endKey，filter等
  */
 public class TableScanParam {
     private byte[] startKey;
     private byte[] endKey;
-    private byte[] prefix;
+
+    /**
+     * 非等值查询命中的情况
+     * @param prefix
+     * @param expression
+     */
+    public TableScanParam(byte[] prefix, Expression expression) {
+    }
+
+    /**
+     * 等值查询命中的情况
+     * @param prefix
+     */
+    public  TableScanParam(byte[] prefix) {
+
+    }
 
     public byte[] getStartKey() {
         return startKey;
@@ -22,13 +39,5 @@ public class TableScanParam {
 
     public void setEndKey(byte[] endKey) {
         this.endKey = endKey;
-    }
-
-    public byte[] getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(byte[] prefix) {
-        this.prefix = prefix;
     }
 }

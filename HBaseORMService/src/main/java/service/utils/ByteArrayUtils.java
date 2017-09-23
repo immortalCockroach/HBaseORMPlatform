@@ -288,4 +288,14 @@ public class ByteArrayUtils {
         // TODO: 2017-09-19 实现byte[]和expression的比较
         return false;
     }
+
+    public static byte[] getLargeByteArray(byte[] origin) {
+        int size = origin.length;
+        byte[] res = new byte[origin.length];
+        System.arraycopy(origin, 0, res, 0, origin.length);
+        for (int i = ) {
+
+        }
+        return res
+    }
 }

@@ -77,20 +77,25 @@ public class QueryInfoWithIndexes {
         Index index = indexColumnList.get(i);
         Map<String, byte[]> linePrefix = new HashMap<>();
         List<String> qualifiers = new ArrayList<>();
-        for (int j = 0; j <= hitNum - 1; j++) {
+        int j;
+        for (j = 0; j <= hitNum - 1; j++) {
             String column = index.getIndexColumnList().get(j);
             Expression expression = expressionMap.get(column);
             // 索引只能用到第一个非等值查询为止
             if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
-                linePrefix.put(column, expression.getValues());
-                qualifiers.add(column);
                 break;
             } else {
                 linePrefix.put(column, expression.getValues());
                 qualifiers.add(column);
             }
         }
-        return ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL, (byte) index.getIndexNum());
+        byte[] prefix = ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL, (byte) index.getIndexNum());
+        if (j == hitNum) {
+            return new TableScanParam(prefix);
+        } else {
+            String column = index.getIndexColumnList().get(j);
+            return new TableScanParam(prefix, expressionMap.get(column));
+        }
     }
 
     /**
