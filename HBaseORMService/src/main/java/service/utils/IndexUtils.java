@@ -1,5 +1,6 @@
 package service.utils;
 
+import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
 
@@ -72,6 +73,8 @@ public class IndexUtils {
         // 保存每个index最多被匹配的列数
         int[] maxRes = new int[indexCount];
         Set<String> querySet = new HashSet<>(queryColumns);
+        // rowkey不作索引的前缀匹配，在原始表查询前统一进行合并和过滤
+        querySet.remove(CommonConstants.ROW_KEY);
         int idx = 0;
         // 记录每个字符串的匹配次数
         Map<String, Integer> columnCountMap = new HashMap<>();

@@ -27,6 +27,7 @@ public class ByteArrayUtils {
      */
     public static int preProcessEscapeCharacterOfBytes(byte[][] list, byte separator, byte escape, byte nul) {
         int size = list.length;
+
         int length = 0;
         for (int i = 0; i <= size - 1; i++) {
             List<Byte> tmp = new ArrayList<>();
@@ -66,12 +67,11 @@ public class ByteArrayUtils {
      * @param length    原先list中的总byte的数量
      * @return
      */
-    public static byte[] concat(byte[][] list, byte separator, int length, byte indexNum) {
+    public static byte[] concat(byte[][] list, byte separator, int length) {
         int size = list.length;
         // length个字节的长度 加上size - 1个分隔符的长度以及开头长度为1字节的索引序号
-        byte[] res = new byte[length + size];
-        res[0] = indexNum;
-        int index = 1;
+        byte[] res = new byte[length + size - 1];
+        int index = 0;
         for (int i = 0; i <= size - 2; i++) {
             byte[] col = list[i];
 
@@ -113,65 +113,67 @@ public class ByteArrayUtils {
 
     /**
      * 将jsonObject的按照qualifiers的顺序组成一个byte[][]
-     * 格式为col1 col1v... col2 col2v... rowkey
+     * 格式为indexNum_col1_col1v_col2_col2v... rowkey
      *
      * @param line
      * @param qualifiers 列修饰符 不包含rowkey
      * @return
      */
-    public static byte[][] jsonObjectToByteArrayList(JSONObject line, String[] qualifiers) {
+    public static byte[][] jsonObjectToByteArrayList(JSONObject line, String[] qualifiers, byte indexNum) {
         int size = qualifiers.length;
-        // 总长度为qualifies.length * 2  + 1对应 length * 2个col + colv 以及1个rowkey的值
-        byte[][] res = new byte[size * 2 + 1][];
-        for (int i = 0; i <= size - 1; i++) {
-            res[2 * i] = Bytes.toBytes(qualifiers[i]);
-            res[2 * i + 1] = line.getBytes(qualifiers[i]);
+        // 总长度为qualifies.length * 2  + 2对应 length * 2个col + colv 以及1个rowkey、1个indexNum的值
+        byte[][] res = new byte[size * 2 + 2][];
+        res[0] = new byte[]{indexNum};
+        for (int i = 1; i <= 2 * size; i += 2) {
+            res[i] = Bytes.toBytes(qualifiers[i]);
+            res[i + 1] = line.getBytes(qualifiers[i]);
         }
         // 最后一个为rowkey的值
-        res[2 * size] = line.getBytes(CommonConstants.ROW_KEY);
+        res[2 * size + 1] = line.getBytes(CommonConstants.ROW_KEY);
 
         return res;
     }
 
-    public static byte[][] jsonObjectToByteArrayList(Map<String, byte[]> line, String[] qualifiers) {
+    public static byte[][] jsonObjectToByteArrayList(Map<String, byte[]> line, String[] qualifiers, byte indexNum) {
         int size = qualifiers.length;
-        // 总长度为qualifies.length * 2  + 1对应 length * 2个col + colv 以及1个rowkey的值
-        byte[][] res = new byte[size * 2 + 1][];
-        for (int i = 0; i <= size - 1; i++) {
-            res[2 * i] = Bytes.toBytes(qualifiers[i]);
-            res[2 * i + 1] = line.get(qualifiers[i]);
+        // 总长度为qualifies.length * 2  + 2对应 length * 2个col + colv 以及1个rowkey、1个indexNum的值
+        byte[][] res = new byte[size * 2 + 2][];
+        res[0] = new byte[]{indexNum};
+        for (int i = 1; i <= 2 * size; i += 2) {
+            res[i] = Bytes.toBytes(qualifiers[i]);
+            res[i + 1] = line.get(qualifiers[i]);
         }
         // 最后一个为rowkey的值
-        res[2 * size] = line.get(CommonConstants.ROW_KEY);
+        res[2 * size + 1] = line.get(CommonConstants.ROW_KEY);
 
         return res;
     }
 
     /**
      * 根据行的JSONObject和qualifiers的顺序，将一行使用separator进行拼接
-     * 需要对内容中的separator和escape字节数据进行转义
-     *
+     * 1、转义
+     * 2、拼接
      * @param line
      * @param qualifiers
      * @return
      */
     public static byte[] generateIndexRowKey(JSONObject line, String[] qualifiers, byte indexNum) {
         // 将一个数据变为col1 col2 ... col1v col2v ... rowkey的形式
-        byte[][] list = jsonObjectToByteArrayList(line, qualifiers);
+        byte[][] list = jsonObjectToByteArrayList(line, qualifiers, indexNum);
         // 将每个byte[]做转义字符处理
         int length = preProcessEscapeCharacterOfBytes(list, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL);
         // 将list使用separator进行拼接
-        byte[] indexRowkey = concat(list, ServiceConstants.EOT, length, indexNum);
+        byte[] indexRowkey = concat(list, ServiceConstants.EOT, length);
         return indexRowkey;
     }
 
     public static byte[] generateIndexRowKey(Map<String, byte[]> line, String[] qualifiers, byte indexNum) {
         // 将一个数据变为col1 col2 ... col1v col2v ... rowkey的形式
-        byte[][] list = jsonObjectToByteArrayList(line, qualifiers);
+        byte[][] list = jsonObjectToByteArrayList(line, qualifiers, indexNum);
         // 将每个byte[]做转义字符处理
         int length = preProcessEscapeCharacterOfBytes(list, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL);
         // 将list使用separator进行拼接
-        byte[] indexRowkey = concat(list, ServiceConstants.EOT, length, indexNum);
+        byte[] indexRowkey = concat(list, ServiceConstants.EOT, length);
         return indexRowkey;
     }
 
@@ -180,6 +182,7 @@ public class ByteArrayUtils {
      * 1、将字节数组按照单独的EOT进行分割
      * 2、将分割后的数组进行转义的逆操作
      *
+     * 分割后的格式为indexNum_col1_col1v_col2_col2v...rowkey
      * @param array
      * @param separator
      * @param escape
@@ -203,9 +206,8 @@ public class ByteArrayUtils {
     public static byte[][] splitArrayWithStandAloneSeprator(byte[] array, byte separator, byte escape) {
         List<byte[]> list = new ArrayList<>();
         int size = array.length;
-        // 索引的序号
-        list.add(new byte[]{array[0]});
-        int start = 1, index = 1;
+
+        int start = 0, index = 0;
         while (index <= size - 1) {
             byte content = array[index];
             if (content == separator) {
@@ -244,8 +246,7 @@ public class ByteArrayUtils {
      */
     public static void removeEscapeCharacter(byte[][] array, byte escape, byte nul) {
         int size = array.length;
-        // 0的位置为索引的序号 此处跳过
-        for (int i = 1; i <= size - 1; i++) {
+        for (int i = 0; i <= size - 1; i++) {
             byte[] tmp = array[i];
             // 原先为null的列单独处理
             if (tmp.length == 2 && tmp[0] == escape && tmp[1] == nul) {
@@ -314,6 +315,7 @@ public class ByteArrayUtils {
 
     /**
      * 将一个数组置位字典序最大
+     *
      * @param array
      */
     public static void fillBytes(byte[] array) {
@@ -321,5 +323,15 @@ public class ByteArrayUtils {
             return;
         }
         Arrays.fill(array, (byte) 1);
+    }
+
+    /**
+     * @param array
+     */
+    public static void resetBytes(byte[] array) {
+        if (array == null || array.length == 0) {
+            return;
+        }
+        Arrays.fill(array, (byte) 0);
     }
 }

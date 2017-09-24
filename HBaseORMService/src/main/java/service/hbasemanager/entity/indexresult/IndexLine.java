@@ -16,6 +16,7 @@ public class IndexLine {
 
     public IndexLine(byte[][] splitArray, Set<String> filterColumns) {
         int size = splitArray.length;
+        // 第一个位置为IndexNum，故跳过
         for (int i = 1; i <= size - 2; i += 2) {
             String column = Bytes.toString(splitArray[i]);
             // 保留在filterColumns中的列
