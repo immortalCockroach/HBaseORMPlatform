@@ -8,6 +8,7 @@ import org.apache.commons.lang.ArrayUtils;
 import service.constants.ServiceConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -151,28 +152,26 @@ public class ByteArrayUtils {
      * 需要对内容中的separator和escape字节数据进行转义
      *
      * @param line
-     * @param separator  分隔符EOT
-     * @param escape     转义符ESC
      * @param qualifiers
      * @return
      */
-    public static byte[] generateIndexRowKey(JSONObject line, String[] qualifiers, byte separator, byte escape, byte nul, byte indexNum) {
+    public static byte[] generateIndexRowKey(JSONObject line, String[] qualifiers, byte indexNum) {
         // 将一个数据变为col1 col2 ... col1v col2v ... rowkey的形式
         byte[][] list = jsonObjectToByteArrayList(line, qualifiers);
         // 将每个byte[]做转义字符处理
-        int length = preProcessEscapeCharacterOfBytes(list, separator, escape, nul);
+        int length = preProcessEscapeCharacterOfBytes(list, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL);
         // 将list使用separator进行拼接
-        byte[] indexRowkey = concat(list, separator, length, indexNum);
+        byte[] indexRowkey = concat(list, ServiceConstants.EOT, length, indexNum);
         return indexRowkey;
     }
 
-    public static byte[] generateIndexRowKey(Map<String, byte[]> line, String[] qualifiers, byte separator, byte escape, byte nul, byte indexNum) {
+    public static byte[] generateIndexRowKey(Map<String, byte[]> line, String[] qualifiers, byte indexNum) {
         // 将一个数据变为col1 col2 ... col1v col2v ... rowkey的形式
         byte[][] list = jsonObjectToByteArrayList(line, qualifiers);
         // 将每个byte[]做转义字符处理
-        int length = preProcessEscapeCharacterOfBytes(list, separator, escape, nul);
+        int length = preProcessEscapeCharacterOfBytes(list, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL);
         // 将list使用separator进行拼接
-        byte[] indexRowkey = concat(list, separator, length, indexNum);
+        byte[] indexRowkey = concat(list, ServiceConstants.EOT, length, indexNum);
         return indexRowkey;
     }
 
@@ -289,13 +288,38 @@ public class ByteArrayUtils {
         return false;
     }
 
+    /**
+     * 得到字典序大1的
+     * 此处的字节字典序大小为 0 1 ... 127 -128 .... -1
+     * 此处全1的情况不会出现
+     *
+     * @param origin
+     * @return
+     */
     public static byte[] getLargeByteArray(byte[] origin) {
         int size = origin.length;
         byte[] res = new byte[origin.length];
         System.arraycopy(origin, 0, res, 0, origin.length);
         for (int i = size - 1; i >= 0; i--) {
-            break;
+            if (res[i] != -1) {
+                res[i]++;
+                break;
+            } else {
+                // 进位
+                res[i] = 0;
+            }
         }
         return res;
+    }
+
+    /**
+     * 将一个数组置位字典序最大
+     * @param array
+     */
+    public static void fillBytes(byte[] array) {
+        if (array == null || array.length == 0) {
+            return;
+        }
+        Arrays.fill(array, (byte) 1);
     }
 }

@@ -77,7 +77,7 @@ public class TableIndexService {
             // 将数据转换为对应的形式然后put到index表中
             for (int i = 0; i <= size - 1; i++) {
                 // 将每一行中，qualifiers中的内容进行转义字符的预处理并拼接成index表的rowKey
-                byte[] indexRowKey = ByteArrayUtils.generateIndexRowKey(rows.getJSONObject(i), qualifiers, ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL, (byte) indexNum);
+                byte[] indexRowKey = ByteArrayUtils.generateIndexRowKey(rows.getJSONObject(i), qualifiers, (byte) indexNum);
 
                 // index表
                 Map<String, byte[]> lineMap = new HashMap<>(2);
@@ -96,6 +96,7 @@ public class TableIndexService {
 
     /**
      * 新建索引时更新对应的索引表
+     *
      * @param indexTableName
      * @param qualifiers
      */
@@ -145,8 +146,7 @@ public class TableIndexService {
 
             for (Map<String, byte[]> row : valuesMap) {
                 // 将每一行的数据按照当前索引qualifiers进行拼接
-                byte[] indexRowKey = ByteArrayUtils.generateIndexRowKey(row, qualifiers, ServiceConstants.EOT,
-                        ServiceConstants.ESC, ServiceConstants.NUL, (byte) hitIndex.getIndexNum());
+                byte[] indexRowKey = ByteArrayUtils.generateIndexRowKey(row, qualifiers, (byte) hitIndex.getIndexNum());
 
                 Map<String, byte[]> lineMap = new HashMap<>(2);
                 lineMap.put(CommonConstants.ROW_KEY, indexRowKey);

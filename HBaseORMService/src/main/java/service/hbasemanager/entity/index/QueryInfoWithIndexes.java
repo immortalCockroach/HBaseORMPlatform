@@ -85,16 +85,17 @@ public class QueryInfoWithIndexes {
             if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
                 break;
             } else {
-                linePrefix.put(column, expression.getValues());
+                linePrefix.put(column, expression.getValue());
                 qualifiers.add(column);
             }
         }
-        byte[] prefix = ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), ServiceConstants.EOT, ServiceConstants.ESC, ServiceConstants.NUL, (byte) index.getIndexNum());
+        byte indexNum = (byte) index.getIndexNum();
+
         if (j == hitNum) {
-            return new TableScanParam(prefix);
+            return new TableScanParam(ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), (byte) index.getIndexNum()));
         } else {
             String column = index.getIndexColumnList().get(j);
-            return new TableScanParam(prefix, expressionMap.get(column));
+            return new TableScanParam(linePrefix, qualifiers, expressionMap.get(column), indexNum);
         }
     }
 
