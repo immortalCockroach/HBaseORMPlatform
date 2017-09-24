@@ -1,6 +1,7 @@
 package service.hbasemanager.entity.indexresult;
 
 import com.immortalcockroach.hbaseorm.param.condition.Expression;
+import service.utils.ByteArrayUtils;
 
 /**
  * 根据查询的condition 构造scan的startKey，endKey，filter等
@@ -22,6 +23,9 @@ public class TableScanParam {
      * @param prefix
      */
     public  TableScanParam(byte[] prefix) {
+        // 如果是等值的查询，取startKey为前缀，endKey为比startKey大1即可
+        this.startKey = prefix;
+        this.endKey = ByteArrayUtils.getLargeByteArray(startKey);
 
     }
 

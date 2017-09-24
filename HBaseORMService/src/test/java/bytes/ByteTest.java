@@ -1,5 +1,7 @@
 package bytes;
 
+import com.immortalcockroach.hbaseorm.util.Bytes;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +11,7 @@ import java.util.List;
 public class ByteTest {
     public static void main(String[] args) {
 
-        List<byte[]> list = new ArrayList<>();
+        /*List<byte[]> list = new ArrayList<>();
         list.add(new byte[]{1, 2, 3});
         list.add(new byte[]{2, 4, 5});
 
@@ -22,6 +24,14 @@ public class ByteTest {
                 System.out.print(bb + " ");
             }
             System.out.println();
-        }
+        }*/
+
+        byte[] B = new byte[]{0, 1, -1, 64};
+        System.out.println(Bytes.toInt(B));
+        /*for (byte b : B) {
+            System.out.print(b + " ");
+        }*/
+
+        System.out.println(Bytes.compareTo(Bytes.toBytes(130880), Bytes.toBytes(130624)));
     }
 }

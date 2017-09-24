@@ -293,9 +293,9 @@ public class ByteArrayUtils {
         int size = origin.length;
         byte[] res = new byte[origin.length];
         System.arraycopy(origin, 0, res, 0, origin.length);
-        for (int i = ) {
-
+        for (int i = size - 1; i >= 0; i--) {
+            break;
         }
-        return res
+        return res;
     }
 }
