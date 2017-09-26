@@ -1,4 +1,4 @@
-package com.immortalcockroach.hbaseorm.param.condition;
+package com.immortalcockroach.hbaseorm.entity.query;
 
 import com.immortalcockroach.hbaseorm.param.enums.LogicalOperatorEnum;
 

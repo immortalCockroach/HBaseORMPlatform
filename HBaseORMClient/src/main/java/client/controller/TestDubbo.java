@@ -56,7 +56,7 @@ public class TestDubbo {
         return null;
     }
 
-    @RequestMapping(value = "/testCreateUUID", method = RequestMethod.GET)
+ /*   @RequestMapping(value = "/testCreateUUID", method = RequestMethod.GET)
     @ResponseBody
     public String testCreateUUID() {
         CreateTableParam.CreateTableParamBuilder builder = new CreateTableParam.CreateTableParamBuilder(Bytes.toBytes("testCreateUUID"));
@@ -77,7 +77,7 @@ public class TestDubbo {
         CreateTableParam param = builder.build();
         BaseResult result = createService.createTable(param);
         return JSON.toJSONString(result);
-    }
+    }*/
 
     @RequestMapping(value = "/testInsert", method = RequestMethod.GET)
     @ResponseBody

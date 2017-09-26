@@ -1,7 +1,7 @@
 package com.immortalcockroach.hbaseorm.param;
 
 
-import com.immortalcockroach.hbaseorm.param.condition.Condition;
+import com.immortalcockroach.hbaseorm.entity.query.Condition;
 
 import java.io.Serializable;
 import java.util.List;

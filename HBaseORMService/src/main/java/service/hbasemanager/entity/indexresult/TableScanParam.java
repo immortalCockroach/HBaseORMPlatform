@@ -1,6 +1,6 @@
 package service.hbasemanager.entity.indexresult;
 
-import com.immortalcockroach.hbaseorm.param.condition.Expression;
+import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
 import service.utils.ByteArrayUtils;
 

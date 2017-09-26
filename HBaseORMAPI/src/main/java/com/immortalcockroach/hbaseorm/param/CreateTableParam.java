@@ -1,5 +1,7 @@
 package com.immortalcockroach.hbaseorm.param;
 
+import com.immortalcockroach.hbaseorm.entity.Column;
+
 import java.io.Serializable;
 
 /**
@@ -10,10 +12,11 @@ public class CreateTableParam implements Serializable {
 
     private static final long serialVersionUID = 4096731978248692079L;
     private byte[] tableName;
+    private Column[] columns;
+
     // 必须为CommonConstants中的UUID或者是(small)AutoIncrement;
     private String splitAlgorithms;
 
-    // 如果不带则取1
     private Integer lowerBound;
     // 当为AutoIncrement的时候必须带上的参数
     private Integer upperBound;
@@ -33,6 +36,7 @@ public class CreateTableParam implements Serializable {
         this.upperBound = builder.upperBound;
         this.lowerBound = builder.lowerBound;
         this.splitNum = builder.splitNum;
+        this.columns = builder.columns;
     }
 
     public Integer getLowerBound() {
@@ -60,13 +64,15 @@ public class CreateTableParam implements Serializable {
      */
     public static class CreateTableParamBuilder {
         private final byte[] tableName;
+        private final Column[] columns;
         private String splitAlgorithm;
         private Integer upperBound;
         private Integer lowerBound;
         private Integer splitNum;
 
-        public CreateTableParamBuilder(byte[] tableName) {
+        public CreateTableParamBuilder(byte[] tableName, Column[] columns) {
             this.tableName = tableName;
+            this.columns = columns;
         }
 
         public CreateTableParamBuilder splitAlgorithm(String splitAlgorithm) {

@@ -1,8 +1,7 @@
 package service.hbasemanager.entity.index;
 
-import com.immortalcockroach.hbaseorm.param.condition.Expression;
+import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
-import service.constants.ServiceConstants;
 import service.hbasemanager.entity.indexresult.TableScanParam;
 import service.utils.ByteArrayUtils;
 

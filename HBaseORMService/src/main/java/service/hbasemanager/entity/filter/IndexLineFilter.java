@@ -3,7 +3,7 @@ package service.hbasemanager.entity.filter;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
-import com.immortalcockroach.hbaseorm.param.condition.Expression;
+import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import service.constants.ServiceConstants;
