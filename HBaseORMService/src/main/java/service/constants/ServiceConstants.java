@@ -1,11 +1,6 @@
 package service.constants;
 
 import com.immortalcockroach.hbaseorm.util.Bytes;
-import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
-import org.apache.hadoop.hbase.protobuf.generated.FilterProtos;
-
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 全局常量部分
@@ -31,6 +26,11 @@ public class ServiceConstants {
     public static final String GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR = ",";
     // global_idx索引之间的分割符
     public static final String GLOBAL_INDEX_TABLE_INDEX_SEPARATOR = "_";
+
+    // global_idx联合索引的内部column分割符
+    public static final String GLOBAL_DESC_TABLE_INNER_SEPARATOR = ",";
+    // global_idx索引之间的分割符
+    public static final String GLOBAL_DESC_TABLE_SEPARATOR = "_";
 
     // 每次以1000作为插入的行数
     public static final Integer THRESHOLD = 1000;

@@ -6,7 +6,7 @@ import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
-import service.hbasemanager.creation.index.TableIndexService;
+import service.hbasemanager.creation.TableIndexService;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.utils.HBaseTableUtils;

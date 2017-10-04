@@ -28,12 +28,6 @@ public class GlobalIndexInfoHolder {
     @Resource
     private TableScanService scanner;
 
-    @Resource
-    private TableInsertService inserter;
-
-    @Resource
-    private TableGetService getter;
-
     // 全局索引表，String为数据表名字
     private ConcurrentHashMap<String, List<Index>> globalIndexMap;
 

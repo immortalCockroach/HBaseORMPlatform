@@ -18,5 +18,9 @@
           class="service.hbasemanager.creation.index.GlobalIndexInfoHolder"
           init-method="init"/>
 
+    <bean id="globalTableDescInfoHolder"
+          class="service.hbasemanager.creation.tabledesc.GlobalTableDescInfoHolder"
+          init-method="init"/>
+
     <import resource="dubbo-config.xml"/>
 </beans>

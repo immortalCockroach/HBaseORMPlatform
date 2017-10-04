@@ -6,11 +6,12 @@ import com.immortalcockroach.hbaseorm.param.CreateTableParam;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.util.RegionSplitter;
 import service.constants.ServiceConstants;
 import service.enums.SplitAlgorithmsEnum;
-import service.hbasemanager.creation.index.TableIndexService;
-import service.hbasemanager.creation.table.TableCreateService;
+import service.hbasemanager.creation.TableCreateService;
+import service.hbasemanager.creation.TableIndexService;
 import service.hbasemanager.utils.HBaseClusterUtils;
 import service.hbasemanager.utils.HBaseTableUtils;
 import service.utils.ByteArrayUtils;
@@ -36,28 +37,34 @@ public class CreateServiceImpl implements CreateService {
             return ResultUtil.getFailedBaseResult("表" + Bytes.toString(tableName) + "已经存在");
         }
         // 客户端已经验证过algorithm的正确性(UUID或者AutoIncrement或者null)，此处跳过验证
+
         String algorithmName = createTableParam.getSplitAlgorithms();
-        byte[][] splitRange;
-        // UUID切分
-        int existClusterNum = HBaseClusterUtils.getExistClusterNum() * 2;
-        int splitNum = createTableParam.getSplitNum() == null ? existClusterNum : createTableParam.getSplitNum();
+        if (!StringUtils.isBlank(algorithmName)) {
+            byte[][] splitRange;
+            // UUID切分
+            int existClusterNum = HBaseClusterUtils.getExistClusterNum() * 2;
+            int splitNum = createTableParam.getSplitNum() == null ? existClusterNum : createTableParam.getSplitNum();
 
-        // UUID切分
-        if (algorithmName.equals(SplitAlgorithmsEnum.UUID_SPLITTER.getAlgorithmName())) {
-            splitRange = SplitAlgorithmsEnum.UUID_SPLITTER.getAlgorithm().split(splitNum);
+            // UUID切分
+            if (algorithmName.equals(SplitAlgorithmsEnum.UUID_SPLITTER.getAlgorithmName())) {
+                splitRange = SplitAlgorithmsEnum.UUID_SPLITTER.getAlgorithm().split(splitNum);
+            } else {
+                RegionSplitter.SplitAlgorithm algorithm = SplitAlgorithmsEnum.AUTO_INCREMENT_SPLITTER.getAlgorithm();
+
+                // 上下界的确定由client端的API完整值的设置
+                Integer lowerBound = createTableParam.getLowerBound();
+                Integer upperBound = createTableParam.getUpperBound();
+                algorithm.setFirstRow(String.valueOf(lowerBound));
+                algorithm.setLastRow(String.valueOf(upperBound));
+                splitRange = algorithm.split(splitNum);
+            }
+
+            BaseResult result = tableCreateService.createTable(tableName, splitRange);
+            return result;
         } else {
-            RegionSplitter.SplitAlgorithm algorithm = SplitAlgorithmsEnum.AUTO_INCREMENT_SPLITTER.getAlgorithm();
-
-            // 上下界的确定由client端的API完整值的设置
-            Integer lowerBound = createTableParam.getLowerBound();
-            Integer upperBound = createTableParam.getUpperBound();
-            algorithm.setFirstRow(String.valueOf(lowerBound));
-            algorithm.setLastRow(String.valueOf(upperBound));
-            splitRange = algorithm.split(splitNum);
+            BaseResult result = tableCreateService.createTable(tableName);
+            return result;
         }
-
-        BaseResult result = tableCreateService.createTable(tableName, splitRange);
-        return result;
     }
 
     /**

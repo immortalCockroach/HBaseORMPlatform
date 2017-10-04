@@ -1,6 +1,7 @@
-package service.hbasemanager.creation.table;
+package service.hbasemanager.creation;
 
 
+import com.immortalcockroach.hbaseorm.entity.Column;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -31,7 +32,7 @@ public class TableCreateService {
      * @param tableName
      * @throws IOException
      */
-    public BaseResult createTable(byte[] tableName, byte[][] splitRange) {
+    public BaseResult createTable(byte[] tableName, Column[] columns) {
 
         Connection connection = HBaseConnectionPool.getConnection();
 
@@ -61,6 +62,26 @@ public class TableCreateService {
 
             tableDesc.addFamily(new HColumnDescriptor(ServiceConstants.BYTES_COLUMN_FAMILY));
             admin.createTable(tableDesc);
+        } catch (IOException ioe) {
+            logger.error(ioe);
+            return ResultUtil.getFailedBaseResult("创建表失败");
+        }
+
+        return ResultUtil.getSuccessBaseResult();
+    }
+
+    public BaseResult createTable(byte[] tableName, byte[][] splitRange, Column[] columns) {
+
+        Connection connection = HBaseConnectionPool.getConnection();
+
+        try (Admin admin = connection.getAdmin()) {
+
+            HTableDescriptor tableDesc = new HTableDescriptor(TableName.valueOf(tableName));
+
+            tableDesc.addFamily(new HColumnDescriptor(ServiceConstants.BYTES_COLUMN_FAMILY));
+            admin.createTable(tableDesc, splitRange);
+
+
         } catch (IOException ioe) {
             logger.error(ioe);
             return ResultUtil.getFailedBaseResult("创建表失败");

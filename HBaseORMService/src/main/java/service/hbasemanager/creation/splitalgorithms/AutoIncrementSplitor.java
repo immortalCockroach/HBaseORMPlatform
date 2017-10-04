@@ -1,4 +1,4 @@
-package service.hbasemanager.creation.table.splitalgorithms;
+package service.hbasemanager.creation.splitalgorithms;
 
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.RegionSplitter;

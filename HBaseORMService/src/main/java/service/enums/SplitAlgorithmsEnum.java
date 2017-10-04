@@ -2,8 +2,8 @@ package service.enums;
 
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import org.apache.hadoop.hbase.util.RegionSplitter;
-import service.hbasemanager.creation.table.splitalgorithms.AutoIncrementSplitor;
-import service.hbasemanager.creation.table.splitalgorithms.UUIDStringSplitor;
+import service.hbasemanager.creation.splitalgorithms.AutoIncrementSplitor;
+import service.hbasemanager.creation.splitalgorithms.UUIDStringSplitor;
 
 /**
  * 表切分算法的枚举类

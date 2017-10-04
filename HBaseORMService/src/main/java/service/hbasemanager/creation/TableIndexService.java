@@ -1,4 +1,4 @@
-package service.hbasemanager.creation.index;
+package service.hbasemanager.creation;
 
 
 import com.alibaba.fastjson.JSONArray;
@@ -10,6 +10,7 @@ import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.springframework.stereotype.Service;
 import service.constants.ServiceConstants;
+import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.read.TableGetService;
@@ -48,7 +49,7 @@ public class TableIndexService {
      * 2、如果数据表中没有数据，则直接返回
      * 3、如果有，则取出rowkey + qualifiers，并以列名+列值+数据表rowkey的形式写入
      * （对于多列的索引为列名1 + 列名2 + 列值1 + 列值2 + 主表rowkey）
-     * 4、更新global_idx表
+     * 4、更新global_idx表和内存map的信息
      *
      * @param indexTableName
      * @param qualifiers     包含rowkey的qualifers
@@ -67,11 +68,11 @@ public class TableIndexService {
 
         // 没有数据则在global_idx表中创建对对应的信息即可
         if (size == 0) {
-            this.updateIndexTable(indexTableName, qualifiers);
+            this.updateGlobalIndexTable(indexTableName, qualifiers);
             return ResultUtil.getSuccessBaseResult();
         } else {
             // 更新内存map的数据
-            this.updateIndexTable(indexTableName, qualifiers);
+            this.updateGlobalIndexTable(indexTableName, qualifiers);
             JSONArray rows = res.getData();
             List<Map<String, byte[]>> valuesList = new ArrayList<>(size);
             // 将数据转换为对应的形式然后put到index表中
@@ -95,12 +96,12 @@ public class TableIndexService {
     }
 
     /**
-     * 新建索引时更新对应的索引表
+     * 新建索引时更新对应的全局索引表global_idx以及内存的map
      *
      * @param indexTableName
      * @param qualifiers
      */
-    private void updateIndexTable(byte[] indexTableName, String[] qualifiers) {
+    private void updateGlobalIndexTable(byte[] indexTableName, String[] qualifiers) {
         PlainResult result = getter.read(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, indexTableName, new String[]{ServiceConstants.GLOBAL_INDEX_TABLE_COL});
         // 该表的第一个index
         if (result.getSize() == 0) {
