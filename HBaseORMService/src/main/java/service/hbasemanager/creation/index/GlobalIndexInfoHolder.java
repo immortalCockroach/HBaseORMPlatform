@@ -7,8 +7,6 @@ import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
-import service.hbasemanager.insert.TableInsertService;
-import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.utils.IndexUtils;
 
@@ -86,6 +84,7 @@ public class GlobalIndexInfoHolder {
 
     /**
      * 更新globalMap中tableName对应的表的索引信息
+     *
      * @param tableName
      * @param qualifiers
      */

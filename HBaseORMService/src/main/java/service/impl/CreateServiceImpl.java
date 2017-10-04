@@ -1,6 +1,7 @@
 package service.impl;
 
 import com.immortalcockroach.hbaseorm.api.CreateService;
+import com.immortalcockroach.hbaseorm.entity.Column;
 import com.immortalcockroach.hbaseorm.param.CreateIndexParam;
 import com.immortalcockroach.hbaseorm.param.CreateTableParam;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
@@ -37,7 +38,7 @@ public class CreateServiceImpl implements CreateService {
             return ResultUtil.getFailedBaseResult("表" + Bytes.toString(tableName) + "已经存在");
         }
         // 客户端已经验证过algorithm的正确性(UUID或者AutoIncrement或者null)，此处跳过验证
-
+        Column[] columns = createTableParam.getColumns();
         String algorithmName = createTableParam.getSplitAlgorithms();
         if (!StringUtils.isBlank(algorithmName)) {
             byte[][] splitRange;
@@ -59,10 +60,10 @@ public class CreateServiceImpl implements CreateService {
                 splitRange = algorithm.split(splitNum);
             }
 
-            BaseResult result = tableCreateService.createTable(tableName, splitRange);
+            BaseResult result = tableCreateService.createTable(tableName, splitRange, columns);
             return result;
         } else {
-            BaseResult result = tableCreateService.createTable(tableName);
+            BaseResult result = tableCreateService.createTable(tableName, columns);
             return result;
         }
     }

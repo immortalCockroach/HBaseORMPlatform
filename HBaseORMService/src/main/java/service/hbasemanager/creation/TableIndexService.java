@@ -66,7 +66,7 @@ public class TableIndexService {
         }
         int size = res.getSize();
 
-        // 没有数据则在global_idx表中创建对对应的信息即可
+        // 没有数据则在global_idx表中创建对应的信息即可
         if (size == 0) {
             this.updateGlobalIndexTable(indexTableName, qualifiers);
             return ResultUtil.getSuccessBaseResult();

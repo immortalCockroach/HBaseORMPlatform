@@ -21,16 +21,24 @@ public class ServiceConstants {
     public static final String GLOBAL_INDEX_TABLE = "global_idx";
     public static final byte[] GLOBAL_INDEX_TABLE_BYTES = Bytes.toBytes("global_idx");
 
+    // 索引表的列信息，用于维护该表中的索引信息
     public static final String GLOBAL_INDEX_TABLE_COL = "idxs";
     // global_idx联合索引的内部column分割符
-    public static final String GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR = ",";
+    public static final String GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR = "_";
     // global_idx索引之间的分割符
-    public static final String GLOBAL_INDEX_TABLE_INDEX_SEPARATOR = "_";
+    public static final String GLOBAL_INDEX_TABLE_INDEX_SEPARATOR = ",";
 
-    // global_idx联合索引的内部column分割符
-    public static final String GLOBAL_DESC_TABLE_INNER_SEPARATOR = ",";
-    // global_idx索引之间的分割符
-    public static final String GLOBAL_DESC_TABLE_SEPARATOR = "_";
+    // 用于维护表中的列信息
+    public static final String GLOBAL_DESC_TABLE = "global_desc";
+    public static final byte[] GLOBAL_DESC_TABLE_BYTES = Bytes.toBytes("global_desc");
+
+    // desc表的列信息，用于维护该表中的列信息
+    public static final String GLOBAL_DESC_TABLE_COL = "descs";
+
+    // global_desc联合索引的内部column分割符
+    public static final String GLOBAL_DESC_TABLE_INNER_SEPARATOR = "_";
+    // global_desc索引之间的分割符
+    public static final String GLOBAL_DESC_TABLE_SEPARATOR = ",";
 
     // 每次以1000作为插入的行数
     public static final Integer THRESHOLD = 1000;

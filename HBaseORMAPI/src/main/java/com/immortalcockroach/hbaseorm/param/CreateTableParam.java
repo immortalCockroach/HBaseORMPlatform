@@ -59,6 +59,10 @@ public class CreateTableParam implements Serializable {
         return splitNum;
     }
 
+    public Column[] getColumns() {
+        return columns;
+    }
+
     /**
      * 多参数构造器模型
      */

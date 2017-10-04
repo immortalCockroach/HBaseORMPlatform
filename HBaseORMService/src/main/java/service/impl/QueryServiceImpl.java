@@ -124,10 +124,7 @@ public class QueryServiceImpl implements QueryService {
                 }
                 return buildResult(mergedMap);
             }
-
         }
-
-
     }
 
     /**
