@@ -27,4 +27,8 @@ public class TableDescriptor {
             descriptor.put(column[0], Integer.valueOf(column[1]));
         }
     }
+
+    public Integer getTypeOfColumn(String column) {
+        return descriptor.get(column);
+    }
 }

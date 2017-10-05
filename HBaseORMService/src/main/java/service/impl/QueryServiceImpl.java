@@ -76,7 +76,7 @@ public class QueryServiceImpl implements QueryService {
                 if (hitIndexNums[i] == 0) {
                     continue;
                 }
-                // TODO: 2017-09-21 根据索引命中信息构建index表的扫描
+
                 TableScanParam param = queryInfoWithIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i]);
                 ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), param);
                 if (!result.getSuccess() || result.getSize() == 0) {

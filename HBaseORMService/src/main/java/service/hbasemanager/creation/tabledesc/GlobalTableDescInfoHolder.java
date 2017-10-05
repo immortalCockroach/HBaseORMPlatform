@@ -6,6 +6,8 @@ import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.entity.Column;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.tabldesc.TableDescriptor;
 import service.hbasemanager.read.TableScanService;
@@ -60,5 +62,22 @@ public class GlobalTableDescInfoHolder {
      */
     public void addDescriptor(byte[] tableName, Column[] columns) {
         this.globalTableDescMap.put(Bytes.toString(tableName), new TableDescriptor(columns));
+    }
+
+    /**
+     * 根据表名和列名获得列的类型
+     * @param tableName
+     * @param column
+     * @return
+     */
+    public Integer getColumnType(byte[] tableName, String column) {
+        if (ArrayUtils.isEmpty(tableName) || StringUtils.isBlank(column)) {
+            return null;
+        }
+        TableDescriptor descriptor = globalTableDescMap.get(Bytes.toString(tableName));
+        if (descriptor == null) {
+            return null;
+        }
+        return descriptor.getTypeOfColumn(column);
     }
 }

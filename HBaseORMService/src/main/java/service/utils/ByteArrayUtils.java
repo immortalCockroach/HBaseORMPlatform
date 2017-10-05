@@ -314,7 +314,7 @@ public class ByteArrayUtils {
     }
 
     /**
-     * 将一个数组置位字典序最大
+     * 将一个数组置为字典序最大
      *
      * @param array
      */
@@ -326,6 +326,7 @@ public class ByteArrayUtils {
     }
 
     /**
+     * 置为字典序的最小
      * @param array
      */
     public static void resetBytes(byte[] array) {

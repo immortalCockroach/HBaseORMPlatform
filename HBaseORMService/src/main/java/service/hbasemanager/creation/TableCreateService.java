@@ -119,8 +119,10 @@ public class TableCreateService {
      * @param columns
      */
     private void addTableDesc(byte[] tableName, Column[] columns) {
+        // 增加全局map的信息
         descInfoHolder.addDescriptor(tableName, columns);
 
+        // 将表的列信息保存到global_desc表中
         String columnDesc = buildColumnsDescBytes(columns);
         Map<String, byte[]> lineMap = new HashMap<>();
         lineMap.put(CommonConstants.ROW_KEY, tableName);
@@ -131,17 +133,20 @@ public class TableCreateService {
     /**
      * 根据column的信息将其拼接为
      * col1_1,col2_2的形式，其中1和2为列的类型信息
+     *
      * @param columns
      * @return
      */
     private String buildColumnsDescBytes(Column[] columns) {
         StringBuilder builder = new StringBuilder();
         for (Column column : columns) {
+            // "col1_2,"的形式
             builder.append(column.getColumnName());
             builder.append(ServiceConstants.GLOBAL_DESC_TABLE_INNER_SEPARATOR);
             builder.append(String.valueOf(column.getType()));
             builder.append(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
         }
+        // 去掉最后的'_'
         return builder.substring(0, builder.length() - 1);
     }
 

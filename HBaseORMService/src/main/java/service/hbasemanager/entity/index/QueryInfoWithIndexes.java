@@ -89,10 +89,11 @@ public class QueryInfoWithIndexes {
             }
         }
         byte indexNum = (byte) index.getIndexNum();
-
+        // 所有都是等值查询
         if (j == hitNum) {
             return new TableScanParam(ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), (byte) index.getIndexNum()));
         } else {
+            // 第j个不是等值查询
             String column = index.getIndexColumnList().get(j);
             return new TableScanParam(linePrefix, qualifiers, expressionMap.get(column), indexNum);
         }
