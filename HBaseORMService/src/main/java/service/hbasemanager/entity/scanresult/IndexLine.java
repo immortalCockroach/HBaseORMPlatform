@@ -1,4 +1,4 @@
-package service.hbasemanager.entity.indexresult;
+package service.hbasemanager.entity.scanresult;
 
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;

@@ -1,9 +1,11 @@
-package service.hbasemanager.entity.indexresult;
+package service.hbasemanager.entity.scanparam;
 
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
+import service.hbasemanager.entity.tabldesc.TableDescriptor;
 import service.utils.ByteArrayUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -11,8 +13,11 @@ import java.util.Map;
  * 根据查询的condition 构造scan的startKey，endKey，filter等
  */
 public final class TableScanParam {
-    private byte[] startKey;
-    private byte[] endKey;
+    // 多个startKey和endKey的组合，因为可能有多次查询
+    private List<KeyPair> keyPairList;
+
+    // 代表扫描的条件是否有效，例如 > Integer.MAX就是无效查询
+    private boolean isValid;
 
     /**
      * 非等值查询的情况，根据expression来构造startKey和endKey
@@ -22,23 +27,22 @@ public final class TableScanParam {
      * @param expression
      * @param indexNum
      */
-    public TableScanParam(Map<String, byte[]> linePrefix, List<String> qualifiers, Expression expression, byte indexNum) {
+    public TableScanParam(Map<String, byte[]> linePrefix, List<String> qualifiers, Expression expression, byte
+            indexNum, TableDescriptor descriptor) {
         // 根据expression的情况设置startKey和endKey
         int operatorId = expression.getArithmeticOperator();
-
+        IndexParam param = new IndexParam(linePrefix, qualifiers, expression, indexNum);
+        // 双目运算符
         if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
 
-        } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) {
+        } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
+            // 单目运算符
+
             // 单个的情况下 只取一边的
             if (operatorId == ArithmeticOperatorEnum.GT.getId()) {
-                // 大于的情况  endKey为不包含运算符的greater
-                this.endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum));
-                // 取startKey为包含不等运算符的greater
-                String column = expression.getColumn();
-                byte[] value = expression.getValue();
-                linePrefix.put(column, value);
-                qualifiers.add(column);
-                this.startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum));
+
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsGT(param, descriptor);
+                this.isValid = true;
             } else if (operatorId == ArithmeticOperatorEnum.GE.getId()) {
                 // 大于等于的情况  endKey为不包含运算符的greater
                 this.endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum));
@@ -61,11 +65,13 @@ public final class TableScanParam {
 
             }
         } else {
-            // 不等于的情况下必须扫索引表的一部分，后面的再过滤
-            this.startKey = ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum);
-            this.endKey = ByteArrayUtils.getLargeByteArray(startKey);
+            // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
+            this.keyPairList = KeyPairsBuilder.buildKeyPairsNEQ(param, descriptor);
+            this.isValid = true;
+
         }
     }
+
 
     /**
      * 等值查询命中的情况，此处直接设置startKey和endKey即可。
@@ -74,23 +80,24 @@ public final class TableScanParam {
      */
     public TableScanParam(byte[] prefix) {
         // 如果是等值的查询，取startKey为前缀，endKey为比startKey大1即可
-        this.startKey = prefix;
-        this.endKey = ByteArrayUtils.getLargeByteArray(startKey);
+        this.keyPairList = new ArrayList<>();
+        keyPairList.add(new KeyPair(prefix));
+        this.isValid = true;
     }
 
-    public byte[] getStartKey() {
-        return startKey;
+    public List<KeyPair> getKeyPairList() {
+        return keyPairList;
     }
 
-    public void setStartKey(byte[] startKey) {
-        this.startKey = startKey;
+    public void setKeyPairList(List<KeyPair> keyPairList) {
+        this.keyPairList = keyPairList;
     }
 
-    public byte[] getEndKey() {
-        return endKey;
+    public boolean isValid() {
+        return isValid;
     }
 
-    public void setEndKey(byte[] endKey) {
-        this.endKey = endKey;
+    public void setValid(boolean valid) {
+        isValid = valid;
     }
 }

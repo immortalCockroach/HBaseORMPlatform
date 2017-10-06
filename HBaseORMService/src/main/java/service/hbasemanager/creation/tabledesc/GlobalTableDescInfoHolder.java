@@ -64,8 +64,13 @@ public class GlobalTableDescInfoHolder {
         this.globalTableDescMap.put(Bytes.toString(tableName), new TableDescriptor(columns));
     }
 
+    public TableDescriptor getDescriptor(byte[] tableName) {
+        return this.globalTableDescMap.get(Bytes.toString(tableName));
+    }
+
     /**
      * 根据表名和列名获得列的类型
+     *
      * @param tableName
      * @param column
      * @return

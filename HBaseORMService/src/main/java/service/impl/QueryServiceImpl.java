@@ -10,12 +10,14 @@ import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
+import service.hbasemanager.creation.tabledesc.GlobalTableDescInfoHolder;
 import service.hbasemanager.entity.filter.IndexLineFilter;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.index.QueryInfoWithIndexes;
-import service.hbasemanager.entity.indexresult.IndexLine;
-import service.hbasemanager.entity.indexresult.MergedResult;
-import service.hbasemanager.entity.indexresult.TableScanParam;
+import service.hbasemanager.entity.scanparam.TableScanParam;
+import service.hbasemanager.entity.scanresult.IndexLine;
+import service.hbasemanager.entity.scanresult.MergedResult;
+import service.hbasemanager.entity.tabldesc.TableDescriptor;
 import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
@@ -47,6 +49,9 @@ public class QueryServiceImpl implements QueryService {
     @Resource
     private GlobalIndexInfoHolder indexInfoHolder;
 
+    @Resource
+    private GlobalTableDescInfoHolder descInfoHolder;
+
     @Override
     public AbstractResult query(QueryParam queryParam) {
         byte[] tableName = queryParam.getTableName();
@@ -57,6 +62,8 @@ public class QueryServiceImpl implements QueryService {
 
         // 存在的索引信息
         List<Index> existedIndex = indexInfoHolder.getTableIndexes(tableName);
+
+        TableDescriptor descriptor = descInfoHolder.getDescriptor(tableName);
 
         Set<String> qualifiers = new HashSet<>(Arrays.asList(queryParam.getQualifiers()));
 
@@ -77,7 +84,7 @@ public class QueryServiceImpl implements QueryService {
                     continue;
                 }
 
-                TableScanParam param = queryInfoWithIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i]);
+                TableScanParam param = queryInfoWithIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i], descriptor);
                 ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), param);
                 if (!result.getSuccess() || result.getSize() == 0) {
                     return ResultUtil.getEmptyListResult();

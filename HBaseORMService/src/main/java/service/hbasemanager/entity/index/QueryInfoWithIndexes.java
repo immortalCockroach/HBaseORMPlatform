@@ -2,7 +2,8 @@ package service.hbasemanager.entity.index;
 
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
-import service.hbasemanager.entity.indexresult.TableScanParam;
+import service.hbasemanager.entity.scanparam.TableScanParam;
+import service.hbasemanager.entity.tabldesc.TableDescriptor;
 import service.utils.ByteArrayUtils;
 
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ public class QueryInfoWithIndexes {
 
     // 未被索引命中的查询条件
     private Set<String> unhitColumns;
+
+    private TableDescriptor descriptor;
 
 
     public QueryInfoWithIndexes(List<Index> indexColumnList, List<Expression> expressions, int[] hitNum) {
@@ -72,7 +75,7 @@ public class QueryInfoWithIndexes {
      *
      * @return
      */
-    public TableScanParam buildIndexTableQueryPrefix(int i, int hitNum) {
+    public TableScanParam buildIndexTableQueryPrefix(int i, int hitNum, TableDescriptor descriptor) {
         Index index = indexColumnList.get(i);
         Map<String, byte[]> linePrefix = new HashMap<>();
         List<String> qualifiers = new ArrayList<>();
@@ -95,7 +98,7 @@ public class QueryInfoWithIndexes {
         } else {
             // 第j个不是等值查询
             String column = index.getIndexColumnList().get(j);
-            return new TableScanParam(linePrefix, qualifiers, expressionMap.get(column), indexNum);
+            return new TableScanParam(linePrefix, qualifiers, expressionMap.get(column), indexNum, descriptor);
         }
     }
 

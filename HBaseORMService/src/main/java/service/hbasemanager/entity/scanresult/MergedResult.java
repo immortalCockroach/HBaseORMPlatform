@@ -1,4 +1,4 @@
-package service.hbasemanager.entity.indexresult;
+package service.hbasemanager.entity.scanresult;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;

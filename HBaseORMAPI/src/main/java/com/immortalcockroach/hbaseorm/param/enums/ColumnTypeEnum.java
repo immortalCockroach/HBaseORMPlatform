@@ -30,6 +30,10 @@ public enum ColumnTypeEnum {
         return null;
     }
 
+    public static boolean isStringType(int type) {
+        return type == VARCHAR.getId();
+    }
+
     public int getId() {
         return id;
     }

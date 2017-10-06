@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import service.constants.ServiceConstants;
 import service.hbasemanager.connection.HBaseConnectionPool;
-import service.hbasemanager.entity.indexresult.TableScanParam;
+import service.hbasemanager.entity.scanparam.TableScanParam;
 
 import java.io.IOException;
 import java.util.Arrays;

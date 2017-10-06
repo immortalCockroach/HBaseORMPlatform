@@ -8,8 +8,8 @@ import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
-import service.hbasemanager.entity.indexresult.IndexLine;
-import service.hbasemanager.entity.indexresult.IndexScanResult;
+import service.hbasemanager.entity.scanresult.IndexLine;
+import service.hbasemanager.entity.scanresult.IndexScanResult;
 import service.utils.ByteArrayUtils;
 
 import java.util.Map;
