@@ -20,7 +20,6 @@ import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import service.constants.ServiceConstants;
 import service.hbasemanager.connection.HBaseConnectionPool;
-import service.hbasemanager.entity.scanparam.TableScanParam;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -139,7 +138,4 @@ public class TableScanService {
         return this.scan(tableName, startKey, endKey, null, qualifers);
     }
 
-    public ListResult scan(byte[] tableName, TableScanParam param) {
-        return this.scan(tableName, param.getStartKey(), param.getEndKey(), null, null);
-    }
 }

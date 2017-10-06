@@ -14,6 +14,7 @@ import service.hbasemanager.creation.tabledesc.GlobalTableDescInfoHolder;
 import service.hbasemanager.entity.filter.IndexLineFilter;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.index.QueryInfoWithIndexes;
+import service.hbasemanager.entity.scanparam.KeyPair;
 import service.hbasemanager.entity.scanparam.TableScanParam;
 import service.hbasemanager.entity.scanresult.IndexLine;
 import service.hbasemanager.entity.scanresult.MergedResult;
@@ -85,10 +86,22 @@ public class QueryServiceImpl implements QueryService {
                 }
 
                 TableScanParam param = queryInfoWithIndexes.buildIndexTableQueryPrefix(i, hitIndexNums[i], descriptor);
-                ListResult result = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), param);
-                if (!result.getSuccess() || result.getSize() == 0) {
+                // 某次查询不合法说明不会
+                if (!param.isValid()) {
                     return ResultUtil.getEmptyListResult();
                 }
+
+                /**
+                 * 一个索引的查询可能有多次的scan 将其合并和再和原先的mergeResult求交集
+                 */
+                List<KeyPair> pairs = param.getKeyPairList();
+                ListResult result = ResultUtil.getEmptyListResult();
+                for (KeyPair pair : pairs) {
+                    ListResult tmp = scanner.scan(ByteArrayUtils.getIndexTableName(tableName), pair.getStartKey(), pair.getEndKey());
+                    result.union(tmp);
+                }
+
+                // 将一个索引命中的多个信息合并后再和原先的求交集
                 filter.setIndex(existedIndex.get(i));
                 filter.setHitNum(hitIndexNums[i]);
                 mergedResult.merge(filter.filter(result));
@@ -96,7 +109,6 @@ public class QueryServiceImpl implements QueryService {
                 if (mergedResult.getResultSize() == 0) {
                     return ResultUtil.getEmptyListResult();
                 }
-
             }
             Set<String> unhitColumns = queryInfoWithIndexes.getUnhitColumns();
             Set<String> leftColumns = mergedResult.getLeftColumns();

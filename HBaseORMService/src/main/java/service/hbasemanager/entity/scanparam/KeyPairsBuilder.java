@@ -15,7 +15,7 @@ public class KeyPairsBuilder {
 
 
     /**
-     * 大于
+     * 不等于
      *
      * @param param
      * @param descriptor
@@ -44,14 +44,13 @@ public class KeyPairsBuilder {
         Expression expression = param.getExpression();
         String column = expression.getColumn();
         Integer type = descriptor.getTypeOfColumn(column);
+        byte[] value = expression.getValue();
 
         if (ColumnTypeEnum.isStringType(type)) {
+            // String大于的情况  endKey为不包含运算符的greater startKey为包含不等运算符的greater
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum()));
-
-            // String大于的情况  endKey为不包含运算符的greater startKey为包含不等运算符的greater
-            byte[] value = expression.getValue();
-            param.addLinePrefix(column, value);
+            param.addOrUpdateLinePrefix(column, value);
             param.addQualifier(column);
             byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(param.getLinePrefix
                     (), param.getQualifiers().toArray(new String[]{}), param.getIndexNum()));
@@ -60,7 +59,84 @@ public class KeyPairsBuilder {
             return res;
         } else {
             // 整型>的情况，需要根据整型的类型和范围来确定
+            return ByteArrayUtils.buildRangeWithSingleRangeGT(param, column, type, value);
+        }
 
+    }
+
+    public static List<KeyPair> buildKeyPairsGE(IndexParam param, TableDescriptor descriptor) {
+        Expression expression = param.getExpression();
+        String column = expression.getColumn();
+        Integer type = descriptor.getTypeOfColumn(column);
+        byte[] value = expression.getValue();
+
+        if (ColumnTypeEnum.isStringType(type)) {
+
+            // String大于等于的情况  endKey为不包含运算符的greater startKey为包含不等运算符
+            byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum()));
+            param.addOrUpdateLinePrefix(column, value);
+            param.addQualifier(column);
+            byte[] startKey = ByteArrayUtils.generateIndexRowKey(param.getLinePrefix
+                    (), param.getQualifiers().toArray(new String[]{}), param.getIndexNum());
+            List<KeyPair> res = new ArrayList<>();
+            res.add(new KeyPair(startKey, endKey));
+            return res;
+        } else {
+            // 整型>=的情况，需要根据整型的类型和范围来确定
+            return ByteArrayUtils.buildRangeWithSingleRangeGE(param, column, type, value);
+        }
+
+    }
+
+    public static List<KeyPair> buildKeyPairsLT(IndexParam param, TableDescriptor descriptor) {
+        Expression expression = param.getExpression();
+        String column = expression.getColumn();
+        Integer type = descriptor.getTypeOfColumn(column);
+        byte[] value = expression.getValue();
+
+        if (ColumnTypeEnum.isStringType(type)) {
+            // String小于的情况  startKey为不包含运算符 endKey为包含运算符
+            byte[] startKey = ByteArrayUtils.generateIndexRowKey(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum());
+
+            param.addOrUpdateLinePrefix(column, value);
+            param.addQualifier(column);
+            byte[] endKey = ByteArrayUtils.generateIndexRowKey(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum());
+
+            List<KeyPair> res = new ArrayList<>();
+            res.add(new KeyPair(startKey, endKey));
+            return res;
+        } else {
+            // 整型<的情况，需要根据整型的类型和范围来确定
+            return ByteArrayUtils.buildRangeWithSingleRangeLT(param, column, type, value);
+        }
+
+    }
+
+    public static List<KeyPair> buildKeyPairsLE(IndexParam param, TableDescriptor descriptor) {
+        Expression expression = param.getExpression();
+        String column = expression.getColumn();
+        Integer type = descriptor.getTypeOfColumn(column);
+        byte[] value = expression.getValue();
+
+        if (ColumnTypeEnum.isStringType(type)) {
+            // String等于的情况  startKey为不包含运算符 endKey为包含运算符的greater
+            byte[] startKey = ByteArrayUtils.generateIndexRowKey(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum());
+
+            param.addOrUpdateLinePrefix(column, value);
+            param.addQualifier(column);
+            byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum()));
+
+            List<KeyPair> res = new ArrayList<>();
+            res.add(new KeyPair(startKey, endKey));
+            return res;
+        } else {
+            // 整型<=的情况，需要根据整型的类型和范围来确定
+            return ByteArrayUtils.buildRangeWithSingleRangeLE(param, column, type, value);
         }
 
     }

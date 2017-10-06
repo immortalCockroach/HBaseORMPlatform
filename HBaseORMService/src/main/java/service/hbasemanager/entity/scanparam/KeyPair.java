@@ -6,32 +6,32 @@ import service.utils.ByteArrayUtils;
  * Created by immortalCockroach on 10/5/17.
  */
 public class KeyPair {
-    private byte[] startKeys;
-    private byte[] endKeys;
+    private byte[] startKey;
+    private byte[] endKey;
 
     public KeyPair(byte[] prefix) {
-        this.startKeys = prefix;
-        this.endKeys = ByteArrayUtils.getLargeByteArray(prefix);
+        this.startKey = prefix;
+        this.endKey = ByteArrayUtils.getLargeByteArray(prefix);
     }
 
     public KeyPair(byte[] startKey, byte[] endKey) {
-        this.startKeys = startKey;
-        this.endKeys = endKey;
+        this.startKey = startKey;
+        this.endKey = endKey;
     }
 
-    public byte[] getStartKeys() {
-        return startKeys;
+    public byte[] getStartKey() {
+        return startKey;
     }
 
-    public void setStartKeys(byte[] startKeys) {
-        this.startKeys = startKeys;
+    public void setStartKey(byte[] startKey) {
+        this.startKey = startKey;
     }
 
-    public byte[] getEndKeys() {
-        return endKeys;
+    public byte[] getEndKey() {
+        return endKey;
     }
 
-    public void setEndKeys(byte[] endKeys) {
-        this.endKeys = endKeys;
+    public void setEndKey(byte[] endKey) {
+        this.endKey = endKey;
     }
 }

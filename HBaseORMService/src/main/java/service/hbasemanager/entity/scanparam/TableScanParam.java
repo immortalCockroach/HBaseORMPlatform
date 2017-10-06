@@ -3,7 +3,6 @@ package service.hbasemanager.entity.scanparam;
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
 import service.hbasemanager.entity.tabldesc.TableDescriptor;
-import service.utils.ByteArrayUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,33 +41,23 @@ public final class TableScanParam {
             if (operatorId == ArithmeticOperatorEnum.GT.getId()) {
 
                 this.keyPairList = KeyPairsBuilder.buildKeyPairsGT(param, descriptor);
-                this.isValid = true;
             } else if (operatorId == ArithmeticOperatorEnum.GE.getId()) {
                 // 大于等于的情况  endKey为不包含运算符的greater
-                this.endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum));
-                // 取startKey为包含不等运算符的前缀
-                String column = expression.getColumn();
-                byte[] value = expression.getValue();
-                linePrefix.put(column, value);
-                qualifiers.add(column);
-                this.startKey = (ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum));
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsGE(param, descriptor);
             } else if (operatorId == ArithmeticOperatorEnum.LT.getId()) {
                 // 小于的情况  startKey为
-                this.endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum));
-                // 取startKey为包含不等运算符的前缀
-                String column = expression.getColumn();
-                byte[] value = expression.getValue();
-                linePrefix.put(column, value);
-                qualifiers.add(column);
-                this.startKey = (ByteArrayUtils.generateIndexRowKey(linePrefix, qualifiers.toArray(new String[]{}), indexNum));
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsLT(param, descriptor);
             } else if (operatorId == ArithmeticOperatorEnum.LE.getId()) {
-
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsLE(param, descriptor);
             }
         } else {
             // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
             this.keyPairList = KeyPairsBuilder.buildKeyPairsNEQ(param, descriptor);
-            this.isValid = true;
+        }
 
+        // 如果返回是null 代表不合法
+        if (keyPairList == null) {
+            this.isValid = false;
         }
     }
 

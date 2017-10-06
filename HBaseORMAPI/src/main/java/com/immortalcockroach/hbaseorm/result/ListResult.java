@@ -26,4 +26,10 @@ public class ListResult extends AbstractResult {
     public void setSize(Integer size) {
         this.size = size;
     }
+
+    public void union(ListResult result) {
+        this.setSize(result.getSize() + this.getSize());
+
+        data.addAll(result.getData());
+    }
 }

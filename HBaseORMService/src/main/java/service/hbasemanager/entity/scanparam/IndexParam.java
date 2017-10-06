@@ -56,7 +56,7 @@ public class IndexParam {
         this.indexNum = indexNum;
     }
 
-    public void addLinePrefix(String column, byte[] value) {
+    public void addOrUpdateLinePrefix(String column, byte[] value) {
         this.linePrefix.put(column, value);
     }
 
