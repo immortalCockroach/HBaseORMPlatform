@@ -387,7 +387,7 @@ public class ByteArrayUtils {
 
             case 2: // short
                 short s = Bytes.toShort(value);
-                if (s > Short.MAX_VALUE) {
+                if (s >= Short.MAX_VALUE) {
                     return null;
                 }
                 if (s >= (short) -1) {
@@ -406,7 +406,7 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [0, L(MAX)] & [b + 1, L(-1)]
+                    // 双端 [0, L(MAX)] & [s + 1, L(-1)]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes((short) 0));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -424,7 +424,7 @@ public class ByteArrayUtils {
                     byte[] startKey2 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
 
-                    param.addOrUpdateLinePrefix(column, Bytes.toBytes((short) 1));
+                    param.addOrUpdateLinePrefix(column, Bytes.toBytes((short) -1));
                     byte[] endKey2 = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true));
                     res.add(new KeyPair(startKey2, endKey2));
@@ -433,7 +433,7 @@ public class ByteArrayUtils {
 
             case 3: // int
                 int i = Bytes.toInt(value);
-                if (i > Integer.MAX_VALUE) {
+                if (i >= Integer.MAX_VALUE) {
                     return null;
                 }
                 if (i >= -1) {
@@ -453,7 +453,7 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [0, L(MAX)] & [b + 1, L(-1)]
+                    // 双端 [0, L(MAX)] & [i + 1, L(-1)]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(0));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -481,7 +481,7 @@ public class ByteArrayUtils {
 
             case 4: // long
                 long l = Bytes.toLong(value);
-                if (l > Long.MAX_VALUE) {
+                if (l >= Long.MAX_VALUE) {
                     return null;
                 }
                 if (l >= -1L) {
@@ -501,7 +501,7 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [0, L(MAX)] & [b + 1, L(-1)]
+                    // 双端 [0, L(MAX)] & [l + 1, L(-1)]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(0L));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -510,8 +510,8 @@ public class ByteArrayUtils {
                             qualifiers, param.getIndexNum(), true);
 
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(Long.MAX_VALUE));
-                    byte[] endKey1 = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix
-                            (), qualifiers, param.getIndexNum(), true));
+                    byte[] endKey1 = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
+                            qualifiers, param.getIndexNum(), true));
                     List<KeyPair> res = new ArrayList<>();
                     res.add(new KeyPair(startKey1, endKey1));
 
@@ -535,7 +535,7 @@ public class ByteArrayUtils {
         switch (type) {
             case 1: // byte
                 byte b = value[0];
-                if (b >= Byte.MAX_VALUE) {
+                if (b > Byte.MAX_VALUE) {
                     return null;
                 }
                 if (b >= (byte) 0) {
@@ -596,7 +596,7 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [0, L(MAX)] & [b, L(-1)]
+                    // 双端 [0, L(MAX)] & [s, L(-1)]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes((short) 0));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -641,7 +641,7 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [0, L(MAX)] & [b, L(-1)]
+                    // 双端 [0, L(MAX)] & [i, L(-1)]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(0));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -672,7 +672,7 @@ public class ByteArrayUtils {
                     return null;
                 }
                 if (l >= 0L) {
-                    // 双端 [0, L(MAX)] & [b, L(-1)]
+                    // 双端 [0, L(MAX)] & [l, L(-1)]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(l));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -687,7 +687,7 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [0, L(MAX)] & [b, L(-1)]
+                    // 双端 [0, L(MAX)] & [l, L(-1)]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(0L));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -764,7 +764,7 @@ public class ByteArrayUtils {
 
             case 2: // short
                 short s = Bytes.toShort(value);
-                if (s <= Short.MAX_VALUE) {
+                if (s <= Short.MIN_VALUE) {
                     return null;
                 }
                 if (s <= (short) 0) {
@@ -808,7 +808,7 @@ public class ByteArrayUtils {
 
             case 3: // int
                 int i = Bytes.toInt(value);
-                if (i <= Integer.MAX_VALUE) {
+                if (i <= Integer.MIN_VALUE) {
                     return null;
                 }
                 if (i <= 0) {
@@ -854,7 +854,7 @@ public class ByteArrayUtils {
 
             case 4: // long
                 long l = Bytes.toLong(value);
-                if (l <= Long.MAX_VALUE) {
+                if (l <= Long.MIN_VALUE) {
                     return null;
                 }
                 if (l <= 0L) {
@@ -866,7 +866,7 @@ public class ByteArrayUtils {
                     byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
 
-                    param.addOrUpdateLinePrefix(column, Bytes.toBytes(Long.MAX_VALUE));
+                    param.addOrUpdateLinePrefix(column, Bytes.toBytes(Long.MIN_VALUE));
                     byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
                     List<KeyPair> res = new ArrayList<>();
@@ -911,6 +911,7 @@ public class ByteArrayUtils {
                 }
                 if (b < (short) 0) {
                     // [min, b]
+                    b++;
                     param.addOrUpdateLinePrefix(column, new byte[]{b});
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -924,13 +925,14 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [MIN, -1] & [0, b)
+                    // 双端 [MIN, -1] & [0, b]
                     param.addOrUpdateLinePrefix(column, new byte[]{0});
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
                     byte[] startKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
 
+                    b++;
                     param.addOrUpdateLinePrefix(column, new byte[]{b});
                     byte[] endKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
@@ -950,11 +952,12 @@ public class ByteArrayUtils {
 
             case 2: // short
                 short s = Bytes.toShort(value);
-                if (s <= Short.MAX_VALUE) {
+                if (s < Short.MIN_VALUE) {
                     return null;
                 }
                 if (s < (short) 0) {
-                    // [min, s)
+                    // [min, s]
+                    s++;
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(s));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -968,13 +971,14 @@ public class ByteArrayUtils {
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // 双端 [MIN, -1] & [0, S)
+                    // 双端 [MIN, -1] & [0, S]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes((short) 0));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
                     byte[] startKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
 
+                    s++;
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(s));
                     byte[] endKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
@@ -994,11 +998,12 @@ public class ByteArrayUtils {
 
             case 3: // int
                 int i = Bytes.toInt(value);
-                if (i <= Integer.MAX_VALUE) {
+                if (i < Integer.MIN_VALUE) {
                     return null;
                 }
-                if (i <= 0) {
-                    // [min, i)
+                if (i < 0) {
+                    // [min, i]
+                    i++;
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(i));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -1007,13 +1012,13 @@ public class ByteArrayUtils {
                             qualifiers, param.getIndexNum(), true);
 
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(Integer.MIN_VALUE));
-                    byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix
-                            (), qualifiers, param.getIndexNum(), true);
+                    byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
+                            qualifiers, param.getIndexNum(), true);
                     List<KeyPair> res = new ArrayList<>();
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    // // 双端 [MIN, -1] & [0, i)
+                    // // 双端 [MIN, -1] & [0, i]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(0));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -1021,6 +1026,7 @@ public class ByteArrayUtils {
                     byte[] startKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
 
+                    i++;
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(i));
                     byte[] endKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
@@ -1040,11 +1046,12 @@ public class ByteArrayUtils {
 
             case 4: // long
                 long l = Bytes.toLong(value);
-                if (l <= Long.MAX_VALUE) {
+                if (l < Long.MIN_VALUE) {
                     return null;
                 }
-                if (l <= 0L) {
-                    // [min, l)
+                if (l < 0L) {
+                    // [min, l]
+                    l++;
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(l));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -1052,14 +1059,14 @@ public class ByteArrayUtils {
                     byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
 
-                    param.addOrUpdateLinePrefix(column, Bytes.toBytes(Long.MAX_VALUE));
-                    byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix
-                            (), qualifiers, param.getIndexNum(), true);
+                    param.addOrUpdateLinePrefix(column, Bytes.toBytes(Long.MIN_VALUE));
+                    byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix
+                            (), qualifiers, param.getIndexNum(), true));
                     List<KeyPair> res = new ArrayList<>();
                     res.add(new KeyPair(startKey, endKey));
                     return res;
                 } else {
-                    //  双端 [MIN, -1] & [0, l)
+                    //  双端 [MIN, -1] & [0, l]
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(0L));
                     param.addQualifier(column);
                     String[] qualifiers = param.getQualifiers().toArray(new String[]{});
@@ -1067,6 +1074,7 @@ public class ByteArrayUtils {
                     byte[] startKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
 
+                    l++;
                     param.addOrUpdateLinePrefix(column, Bytes.toBytes(l));
                     byte[] endKey1 = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                             qualifiers, param.getIndexNum(), true);
