@@ -30,7 +30,7 @@ public class IndexUtils {
         return builder.substring(0, builder.length() - 1);
     }
 
-    public static List<Index> getHitIndexesWithinQualifiersWhenInsert(byte[] tableName, String[] qualifiers, List<Index> existedIndexes) {
+    public static List<Index> getHitIndexesWithinQualifiersWhenInsert(String[] qualifiers, List<Index> existedIndexes) {
         List<Index> res = new ArrayList<>();
         // qualifiers的集合
         Set<String> operColumns = new HashSet<>();
@@ -42,14 +42,15 @@ public class IndexUtils {
             List<String> indexColumns = existedIndex.getIndexColumnList();
 
             int hitNum = 0;
-            // 判断每个索引的最大命中前缀，如果大于0则代表命中，需要更新
+
             for (int i = 0; i <= indexColumns.size() - 1; i++) {
                 if (operColumns.contains(indexColumns.get(i))) {
                     hitNum++;
                     break;
                 }
             }
-            if (hitNum > 0) {
+            // 全部命中才算是命中
+            if (hitNum == existedIndex.getIndexColumnList().size()) {
                 res.add(existedIndex);
             }
 

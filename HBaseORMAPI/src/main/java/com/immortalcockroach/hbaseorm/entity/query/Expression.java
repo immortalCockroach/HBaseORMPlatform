@@ -1,5 +1,7 @@
 package com.immortalcockroach.hbaseorm.entity.query;
 
+import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
+
 import java.io.Serializable;
 
 public class Expression implements Serializable {
@@ -58,5 +60,9 @@ public class Expression implements Serializable {
 
     public void setValue(byte[] value) {
         this.value = value;
+    }
+
+    public boolean isEqualsOperator() {
+        return this.arithmeticOperator.equals(ArithmeticOperatorEnum.EQ.getId());
     }
 }

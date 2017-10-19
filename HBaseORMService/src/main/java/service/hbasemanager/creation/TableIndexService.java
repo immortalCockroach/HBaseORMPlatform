@@ -176,7 +176,7 @@ public class TableIndexService {
         if (existedIndexes == null || existedIndexes.size() == 0) {
             return new ArrayList<>();
         }
-        return IndexUtils.getHitIndexesWithinQualifiersWhenInsert(tableName, qualifiers, existedIndexes);
+        return IndexUtils.getHitIndexesWithinQualifiersWhenInsert(qualifiers, existedIndexes);
     }
 
 }

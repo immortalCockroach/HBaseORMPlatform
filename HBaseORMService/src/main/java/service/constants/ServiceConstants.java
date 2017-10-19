@@ -9,8 +9,6 @@ import com.immortalcockroach.hbaseorm.util.Bytes;
 public class ServiceConstants {
     public static final byte EOT = 4; // 分隔符
     public static final byte ESC = 27; // 转义符
-    // 索引表null值的转义符 可能暂时不需要
-    public static final byte NUL = 0; //
 
 
     public static final String TABLE = "table";
@@ -24,9 +22,9 @@ public class ServiceConstants {
     // 索引表的列信息，用于维护该表中的索引信息
     public static final String GLOBAL_INDEX_TABLE_COL = "idxs";
     // global_idx联合索引的内部column分割符
-    public static final String GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR = "_";
+    public static final String GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR = ",";
     // global_idx索引之间的分割符
-    public static final String GLOBAL_INDEX_TABLE_INDEX_SEPARATOR = ",";
+    public static final String GLOBAL_INDEX_TABLE_INDEX_SEPARATOR = ";";
 
     // 用于维护表中的列信息
     public static final String GLOBAL_DESC_TABLE = "global_desc";
@@ -36,9 +34,9 @@ public class ServiceConstants {
     public static final String GLOBAL_DESC_TABLE_COL = "descs";
 
     // global_desc联合索引的内部column分割符
-    public static final String GLOBAL_DESC_TABLE_INNER_SEPARATOR = "_";
+    public static final String GLOBAL_DESC_TABLE_INNER_SEPARATOR = ",";
     // global_desc索引之间的分割符
-    public static final String GLOBAL_DESC_TABLE_SEPARATOR = ",";
+    public static final String GLOBAL_DESC_TABLE_SEPARATOR = ";";
 
     // 每次以1000作为插入的行数
     public static final Integer THRESHOLD = 1000;
