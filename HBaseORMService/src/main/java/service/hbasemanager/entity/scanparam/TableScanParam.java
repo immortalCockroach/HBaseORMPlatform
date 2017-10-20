@@ -36,7 +36,7 @@ public final class TableScanParam {
             if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {
                 this.keyPairList = KeyPairsBuilder.buildKeyPairsBetween(param, descriptor);
             } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
-
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsBetweenL(param, descriptor);
             } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
 
             } else if (operatorId == ArithmeticOperatorEnum.BETWEENLR.getId()){
