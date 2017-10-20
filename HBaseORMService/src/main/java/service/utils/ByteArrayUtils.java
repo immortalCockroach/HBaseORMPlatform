@@ -3,6 +3,7 @@ package service.utils;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
+import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import org.apache.commons.lang.ArrayUtils;
 import service.constants.ServiceConstants;
@@ -283,13 +284,178 @@ public class ByteArrayUtils {
     /**
      * 根据表达式和value进行检查
      *
-     * @param value
-     * @param expression
      * @return
      */
-    public static boolean checkValueRange(byte[] value, Expression expression) {
-        // TODO: 2017-09-19 实现byte[]和expression的比较
-        return false;
+    public static boolean checkValueRange(byte[] value, Expression expression, Integer columnType) {
+        switch (columnType) {
+            case 0:
+                return checkString(Bytes.toString(value), expression);
+            case 1:
+                return checkByte(value[0], expression);
+            case 2:
+                return checkShort(Bytes.toShort(value), expression);
+            case 3:
+                return checkInt(Bytes.toInt(value), expression);
+            case 4:
+                return checkLong(Bytes.toLong(value), expression);
+            default:
+                return false;
+        }
+    }
+
+    public static boolean checkString(String s, Expression expression) {
+        Integer operatorId = expression.getArithmeticOperator();
+        // l为表达式中的值
+        String l = Bytes.toString(expression.getValue());
+        if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
+            String r = Bytes.toString(expression.getOptionValue());
+            if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {
+                return s.compareTo(l) > 0 && s.compareTo(r) < 0;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
+                return s.compareTo(l) >= 0 && s.compareTo(r) < 0;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
+                return s.compareTo(l) > 0 && s.compareTo(r) <= 0;
+            } else {
+                return s.compareTo(l) >= 0 && s.compareTo(r) <= 0;
+            }
+        } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
+            if (operatorId == ArithmeticOperatorEnum.GT.getId()) {
+                return s.compareTo(l) > 0;
+            } else if (operatorId == ArithmeticOperatorEnum.GE.getId()) {
+                return s.compareTo(l) >= 0;
+            } else if (operatorId == ArithmeticOperatorEnum.LT.getId()) {
+                return s.compareTo(l) < 0;
+            } else {
+                return s.compareTo(l) <= 0;
+            }
+        } else {
+            // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
+            return s.compareTo(l) != 0;
+        }
+    }
+
+    public static boolean checkByte(byte b, Expression expression) {
+        Integer operatorId = expression.getArithmeticOperator();
+        // l为表达式中的值
+        byte l = expression.getValue()[0];
+        if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
+            byte r = expression.getOptionValue()[0];
+            if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {
+                return b > l && b < r;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
+                return b >= l && b < r;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
+                return b > l && b <= r;
+            } else {
+                return b >= l && b <= r;
+            }
+        } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
+            if (operatorId == ArithmeticOperatorEnum.GT.getId()) {
+                return b > l;
+            } else if (operatorId == ArithmeticOperatorEnum.GE.getId()) {
+                return b >= l;
+            } else if (operatorId == ArithmeticOperatorEnum.LT.getId()) {
+                return b < l;
+            } else {
+                return b <= l;
+            }
+        } else {
+            // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
+            return l != b;
+        }
+    }
+
+    public static boolean checkShort(short s, Expression expression) {
+        Integer operatorId = expression.getArithmeticOperator();
+        // l为表达式中的值
+        short l = Bytes.toShort(expression.getValue());
+        if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
+            short r = Bytes.toShort(expression.getOptionValue());
+            if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {
+                return s > l && s < r;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
+                return s >= l && s < r;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
+                return s > l && s <= r;
+            } else {
+                return s >= l && s <= r;
+            }
+        } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
+            if (operatorId == ArithmeticOperatorEnum.GT.getId()) {
+                return s > l;
+            } else if (operatorId == ArithmeticOperatorEnum.GE.getId()) {
+                return s >= l;
+            } else if (operatorId == ArithmeticOperatorEnum.LT.getId()) {
+                return s < l;
+            } else {
+                return s <= l;
+            }
+        } else {
+            // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
+            return l != s;
+        }
+    }
+
+    public static boolean checkInt(int i, Expression expression) {
+        Integer operatorId = expression.getArithmeticOperator();
+        // l为表达式中的值
+        int l = Bytes.toInt(expression.getValue());
+        if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
+            int r = Bytes.toInt(expression.getOptionValue());
+            if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {
+                return i > l && i < r;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
+                return i >= l && i < r;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
+                return i > l && i <= r;
+            } else {
+                return i >= l && i <= r;
+            }
+        } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
+            if (operatorId == ArithmeticOperatorEnum.GT.getId()) {
+                return i > l;
+            } else if (operatorId == ArithmeticOperatorEnum.GE.getId()) {
+                return i >= l;
+            } else if (operatorId == ArithmeticOperatorEnum.LT.getId()) {
+                return i < l;
+            } else {
+                return i <= l;
+            }
+        } else {
+            // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
+            return l != i;
+        }
+    }
+
+    public static boolean checkLong(long l, Expression expression) {
+        Integer operatorId = expression.getArithmeticOperator();
+        // l为表达式中的值
+        int L = Bytes.toInt(expression.getValue());
+        if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
+            long R = Bytes.toLong(expression.getOptionValue());
+            if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {
+                return l > L && l < R;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
+                return l > L && l < R;
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
+                return l > L && l < R;
+            } else {
+                return l > L && l < R;
+            }
+        } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
+            if (operatorId == ArithmeticOperatorEnum.GT.getId()) {
+                return l > L;
+            } else if (operatorId == ArithmeticOperatorEnum.GE.getId()) {
+                return l >= L;
+            } else if (operatorId == ArithmeticOperatorEnum.LT.getId()) {
+                return l < L;
+            } else {
+                return l <= L;
+            }
+        } else {
+            // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
+            return l != L;
+        }
     }
 
     /**

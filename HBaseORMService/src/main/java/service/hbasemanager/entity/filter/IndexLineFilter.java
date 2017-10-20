@@ -10,6 +10,7 @@ import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.scanresult.IndexLine;
 import service.hbasemanager.entity.scanresult.IndexScanResult;
+import service.hbasemanager.entity.tabldesc.TableDescriptor;
 import service.utils.ByteArrayUtils;
 
 import java.util.Map;
@@ -23,11 +24,13 @@ public class IndexLineFilter {
     private int hitNum;
     private Map<String, Expression> expressionMap;
     private Set<String> qualifiers;
+    private TableDescriptor descriptor;
 
-    public IndexLineFilter(Map<String, Expression> expressionMap, Set<String> qualifiers) {
+    public IndexLineFilter(Map<String, Expression> expressionMap, Set<String> qualifiers, TableDescriptor descriptor) {
 
         this.expressionMap = expressionMap;
         this.qualifiers = qualifiers;
+        this.descriptor = descriptor;
     }
 
     public void setIndex(Index index) {
@@ -74,20 +77,22 @@ public class IndexLineFilter {
         int size = splitArray.length;
         // 跳过头部的index序号和尾部的rowkey
         for (int i = 1; i <= size - 2; i += 2) {
-            Expression expression = expressionMap.get(Bytes.toString(splitArray[i]));
+            String column = Bytes.toString(splitArray[i]);
+            Expression expression = expressionMap.get(column);
             // 该列没有在查询条件中
             if (expression == null) {
                 continue;
             } else {
                 byte[] value = splitArray[i + 1];
-                if (!ByteArrayUtils.checkValueRange(value, expression)) {
+                if (!ByteArrayUtils.checkValueRange(value, expression, descriptor.getTypeOfColumn(column))) {
                     return false;
                 }
             }
         }
         if (expressionMap.containsKey(CommonConstants.ROW_KEY)) {
             byte[] value = splitArray[size - 1];
-            if (!ByteArrayUtils.checkValueRange(value, expressionMap.get(CommonConstants.ROW_KEY))) {
+            if (!ByteArrayUtils.checkValueRange(value, expressionMap.get(CommonConstants.ROW_KEY),
+                    descriptor.getTypeOfColumn(CommonConstants.ROW_KEY))) {
                 return false;
             }
         }
@@ -102,13 +107,13 @@ public class IndexLineFilter {
      */
     public boolean check(JSONObject line) {
 
-        for (String key : line.keySet()) {
-            Expression expression = expressionMap.get(key);
+        for (String column : line.keySet()) {
+            Expression expression = expressionMap.get(column);
             if (expression == null) {
                 continue;
             } else {
-                byte[] value = line.getBytes(key);
-                if (!ByteArrayUtils.checkValueRange(value, expression)) {
+                byte[] value = line.getBytes(column);
+                if (!ByteArrayUtils.checkValueRange(value, expression, descriptor.getTypeOfColumn(column))) {
                     return false;
                 }
             }

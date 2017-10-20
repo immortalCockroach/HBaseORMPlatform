@@ -78,7 +78,7 @@ public class QueryServiceImpl implements QueryService {
             // size代表该表的索引数量
             int size = hitIndexNums.length;
             MergedResult mergedResult = new MergedResult(qualifiers);
-            IndexLineFilter filter = new IndexLineFilter(queryInfoWithIndexes.getExpressionMap(), qualifiers);
+            IndexLineFilter filter = new IndexLineFilter(queryInfoWithIndexes.getExpressionMap(), qualifiers, descriptor);
             for (int i = 0; i <= size - 1; i++) {
                 // 代表该索引没有被命中，跳过
                 if (hitIndexNums[i] == 0) {
