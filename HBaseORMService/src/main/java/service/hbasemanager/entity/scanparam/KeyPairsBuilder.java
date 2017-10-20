@@ -206,7 +206,36 @@ public class KeyPairsBuilder {
         byte[] upper = expression.getOptionValue();
 
         if (ColumnTypeEnum.isStringType(type)) {
-            // String(]的情况  startKey为包含lower endKey为包含upper
+            // String(]的情况  startKey为包含lower的larger endKey为包含upper的larger
+
+            param.addOrUpdateLinePrefix(column, lower);
+            param.addQualifier(column);
+            byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+
+            param.addOrUpdateLinePrefix(column, upper);
+            byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+
+            List<KeyPair> res = new ArrayList<>();
+            res.add(new KeyPair(startKey, endKey));
+            return res;
+        } else {
+            // 整型<=的情况，需要根据整型的类型和范围来确定
+            return ByteArrayUtils.buildRangeWithDoubleRangeBetweenR(param, column, type, lower, upper);
+        }
+
+    }
+
+    public static List<KeyPair> buildKeyPairsBetweenLR(IndexParam param, TableDescriptor descriptor) {
+        Expression expression = param.getExpression();
+        String column = expression.getColumn();
+        Integer type = descriptor.getTypeOfColumn(column);
+        byte[] lower = expression.getValue();
+        byte[] upper = expression.getOptionValue();
+
+        if (ColumnTypeEnum.isStringType(type)) {
+            // String[]的情况  startKey为包含lower endKey为包含upper的larger
 
             param.addOrUpdateLinePrefix(column, lower);
             param.addQualifier(column);
@@ -214,15 +243,15 @@ public class KeyPairsBuilder {
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
 
             param.addOrUpdateLinePrefix(column, upper);
-            byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+            byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
 
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
             return res;
         } else {
             // 整型<=的情况，需要根据整型的类型和范围来确定
-            return ByteArrayUtils.buildRangeWithDoubleRangeBetweenL(param, column, type, lower, upper);
+            return ByteArrayUtils.buildRangeWithDoubleRangeBetweenLR(param, column, type, lower, upper);
         }
 
     }

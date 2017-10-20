@@ -38,9 +38,9 @@ public final class TableScanParam {
             } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
                 this.keyPairList = KeyPairsBuilder.buildKeyPairsBetweenL(param, descriptor);
             } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
-
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsBetweenR(param, descriptor);
             } else if (operatorId == ArithmeticOperatorEnum.BETWEENLR.getId()){
-
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsBetweenLR(param, descriptor);
             }
         } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
             // 单目运算符
