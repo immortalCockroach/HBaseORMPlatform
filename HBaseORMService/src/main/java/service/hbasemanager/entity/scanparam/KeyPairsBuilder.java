@@ -18,10 +18,9 @@ public class KeyPairsBuilder {
      * 不等于
      *
      * @param param
-     * @param descriptor
      * @return
      */
-    public static List<KeyPair> buildKeyPairsNEQ(IndexParam param, TableDescriptor descriptor) {
+    public static List<KeyPair> buildKeyPairsNEQ(IndexParam param) {
         byte[] prefix = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(), param.getQualifiers().toArray(new
                 String[]{}), param.getIndexNum(), false);
         byte[] startKey = prefix;
@@ -137,6 +136,35 @@ public class KeyPairsBuilder {
         } else {
             // 整型<=的情况，需要根据整型的类型和范围来确定
             return ByteArrayUtils.buildRangeWithSingleRangeLE(param, column, type, value);
+        }
+
+    }
+
+    public static List<KeyPair> buildKeyPairsBetween(IndexParam param, TableDescriptor descriptor) {
+        Expression expression = param.getExpression();
+        String column = expression.getColumn();
+        Integer type = descriptor.getTypeOfColumn(column);
+        byte[] lower = expression.getValue();
+        byte[] upper = expression.getOptionValue();
+
+        if (ColumnTypeEnum.isStringType(type)) {
+            // String()的情况  startKey为包含lower的greater endKey为包含upper
+
+            param.addOrUpdateLinePrefix(column, lower);
+            param.addQualifier(column);
+            byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+
+            param.addOrUpdateLinePrefix(column, upper);
+            byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
+                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+
+            List<KeyPair> res = new ArrayList<>();
+            res.add(new KeyPair(startKey, endKey));
+            return res;
+        } else {
+            // 整型<=的情况，需要根据整型的类型和范围来确定
+            return ByteArrayUtils.buildRangeWithDoubleRangeBetween(param, column, type, lower, upper);
         }
 
     }

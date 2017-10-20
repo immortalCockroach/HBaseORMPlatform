@@ -33,7 +33,15 @@ public final class TableScanParam {
         IndexParam param = new IndexParam(linePrefix, qualifiers, expression, indexNum);
         // 双目运算符
         if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
+            if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {
+                this.keyPairList = KeyPairsBuilder.buildKeyPairsBetween(param, descriptor);
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENL.getId()) {
 
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
+
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENLR.getId()){
+
+            }
         } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
             // 单目运算符
 
@@ -52,7 +60,7 @@ public final class TableScanParam {
             }
         } else {
             // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
-            this.keyPairList = KeyPairsBuilder.buildKeyPairsNEQ(param, descriptor);
+            this.keyPairList = KeyPairsBuilder.buildKeyPairsNEQ(param);
         }
 
         // 如果返回是null 代表不合法

@@ -85,11 +85,18 @@ public class IndexLineFilter {
                 }
             }
         }
+        if (expressionMap.containsKey(CommonConstants.ROW_KEY)) {
+            byte[] value = splitArray[size - 1];
+            if (!ByteArrayUtils.checkValueRange(value, expressionMap.get(CommonConstants.ROW_KEY))) {
+                return false;
+            }
+        }
         return true;
     }
 
     /**
      * 回表查询时的行check
+     *
      * @param line
      * @return
      */
