@@ -3,6 +3,7 @@ package service.impl;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.api.QueryService;
+import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.param.QueryParam;
 import com.immortalcockroach.hbaseorm.result.AbstractResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
@@ -110,11 +111,13 @@ public class QueryServiceImpl implements QueryService {
                     return ResultUtil.getEmptyListResult();
                 }
             }
+            // 未被索引命中的查询条件
             Set<String> unhitColumns = queryInfoWithIndexes.getUnhitColumns();
+            // 不在索引列中的筛选列
             Set<String> leftColumns = mergedResult.getLeftColumns();
             // 说明不需要回表查询
             if (unhitColumns.size() == 0 && leftColumns.size() == 0) {
-                return buildResult(mergedResult.getMergedLineMap());
+                return buildResult(mergedResult.getMergedLineMap(), qualifiers.contains(CommonConstants.ROW_KEY));
             } else {
                 LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
                 // 构造回表查询的列，然后回表查询
@@ -141,7 +144,7 @@ public class QueryServiceImpl implements QueryService {
                         oldLine.mergeLine(line);
                     }
                 }
-                return buildResult(mergedMap);
+                return buildResult(mergedMap, qualifiers.contains(CommonConstants.ROW_KEY));
             }
         }
     }
@@ -152,9 +155,14 @@ public class QueryServiceImpl implements QueryService {
      * @param mergedResult
      * @return
      */
-    private AbstractResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult) {
+    private AbstractResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult, boolean containsRowkey) {
         JSONArray array = new JSONArray();
         for (IndexLine indexLine : mergedResult.values()) {
+            JSONObject tmp = indexLine.toJSONObject();
+            // 由于IndexLine的map不包含rowkey，如果查询结果中要求rowkey的话，单独加上
+            if (containsRowkey) {
+                tmp.put(CommonConstants.ROW_KEY, indexLine.getRowkey());
+            }
             array.add(indexLine.toJSONObject());
         }
         return ResultUtil.getSuccessListResult(array);

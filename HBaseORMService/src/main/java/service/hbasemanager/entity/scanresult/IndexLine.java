@@ -65,7 +65,6 @@ public class IndexLine {
         for (Map.Entry<String, byte[]> entry : columnMap.entrySet()) {
             res.put(entry.getKey(), entry.getValue());
         }
-        res.put(CommonConstants.ROW_KEY, rowkey);
         return res;
     }
 }

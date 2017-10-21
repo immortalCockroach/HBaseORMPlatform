@@ -22,8 +22,9 @@ public class IndexScanResult {
         rowkeys = new HashSet<>();
         lineMap = new HashMap<>();
         filterColumn = new HashSet<>();
-        // 根据查询的列，和表中已有的列得到需要保留的列
+        // 根据查询的列，和索引中已有的列得到需要保留的列
         for (String column : indexColumns) {
+            // 如果查询的列中有索引包含的列，则保留
             if (qualifiers.contains(column)) {
                 filterColumn.add(column);
             }

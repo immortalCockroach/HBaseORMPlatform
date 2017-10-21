@@ -6,6 +6,7 @@ import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
+import org.apache.commons.lang.ArrayUtils;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.scanresult.IndexLine;
@@ -89,6 +90,7 @@ public class IndexLineFilter {
                 }
             }
         }
+        // 如果有rowkey的过滤，则在此处过滤
         if (expressionMap.containsKey(CommonConstants.ROW_KEY)) {
             byte[] value = splitArray[size - 1];
             if (!ByteArrayUtils.checkValueRange(value, expressionMap.get(CommonConstants.ROW_KEY),
@@ -101,6 +103,7 @@ public class IndexLineFilter {
 
     /**
      * 回表查询时的行check
+     * 验证过后的line为去除非查询的列的JSONObject
      *
      * @param line
      * @return
@@ -109,12 +112,18 @@ public class IndexLineFilter {
 
         for (String column : line.keySet()) {
             Expression expression = expressionMap.get(column);
+            byte[] value = line.getBytes(column);
+            // 查询到的列不是过滤条件中的列
             if (expression == null) {
                 continue;
             } else {
-                byte[] value = line.getBytes(column);
                 if (!ByteArrayUtils.checkValueRange(value, expression, descriptor.getTypeOfColumn(column))) {
                     return false;
+                } else {
+                    // 如果不在qualiiers中，则剔除该列
+                    if (!qualifiers.contains(column)) {
+                        line.remove(column);
+                    }
                 }
             }
         }
