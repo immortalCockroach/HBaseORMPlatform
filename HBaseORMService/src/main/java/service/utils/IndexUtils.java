@@ -1,6 +1,7 @@
 package service.utils;
 
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
+import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
 
@@ -62,38 +63,50 @@ public class IndexUtils {
      * 给定表的所有索引以及查询列，求最优的索引结构
      *
      * @param existedIndex
-     * @param queryColumns
+     * @param queryTypeMap
      * @return
      */
-    public static int[] getHitIndexWhenQuery(List<Index> existedIndex, List<String> queryColumns) {
+    public static int[] getHitIndexWhenQuery(List<Index> existedIndex, Map<String, Integer> queryTypeMap) {
         int indexCount = existedIndex.size();
-        if (existedIndex == null || existedIndex.size() == 0 || queryColumns == null || queryColumns.size() == 0) {
+        if (existedIndex == null || existedIndex.size() == 0 || queryTypeMap == null || queryTypeMap.size() == 0) {
             return new int[indexCount];
         }
-
         // 保存每个index最多被匹配的列数
         int[] maxRes = new int[indexCount];
-        Set<String> querySet = new HashSet<>(queryColumns);
         // rowkey不作索引的前缀匹配，在原始表查询前统一进行合并和过滤
+        // 此处需要修改查询的列，索引使用单独的列
+        Set<String> querySet = new HashSet<>(queryTypeMap.keySet());
+
         querySet.remove(CommonConstants.ROW_KEY);
-        int idx = 0;
+
         // 记录每个字符串的匹配次数
         Map<String, Integer> columnCountMap = new HashMap<>();
         List<List<String>> indexes = new ArrayList<>();
         for (Index index : existedIndex) {
             indexes.add(index.getIndexColumnList());
         }
+        int idx = 0;
         for (List<String> index : indexes) {
             int hitCount = 0;
             // 计算每个index最多被queryColumns匹配的数量，保存到res中
-            for (String column : index) {
+            int size = index.size();
+            for (int i = 0; i <= size - 1; i++) {
+                String column = index.get(i);
                 if (querySet.contains(column)) {
-                    Integer c = columnCountMap.get(column);
-                    if (c == null) {
-                        c = 0;
+                    // 如果该查询不是!=且(是等值查询，或者前面一个是等值查询)，则加入;否则说明该索引列不可命中，直接break;
+                    Integer queryType = queryTypeMap.get(column);
+                    if (!ArithmeticOperatorEnum.isNotEqualQuery(queryType) && (ArithmeticOperatorEnum.isEqualQuery(queryType)
+                            || (i == 0 || ArithmeticOperatorEnum.isEqualQuery(queryTypeMap.get(index.get(i - 1)))))) {
+                        Integer c = columnCountMap.get(column);
+                        if (c == null) {
+                            c = 0;
+                        }
+                        columnCountMap.put(column, c + 1);
+                        hitCount++;
+                    } else {
+                        break;
                     }
-                    columnCountMap.put(column, c + 1);
-                    hitCount++;
+
                 } else {
                     break;
                 }
@@ -101,27 +114,28 @@ public class IndexUtils {
             maxRes[idx] = hitCount;
             idx++;
         }
-        // 如果只命中了小于等于1个索引，则直接返回即可
-        if (noZeroEleCount(maxRes) <= 1) {
+        // 如果只命中了小于等于1个索引或者当前的命中已经合法，则直接返回即可
+        if (indexHitCount(maxRes) <= 1 || validate(columnCountMap)) {
             return maxRes;
         }
         int[] res = new int[indexCount];
-        dfs(0, res, maxRes, indexes, queryColumns, columnCountMap);
+        dfs(0, res, maxRes, indexes, columnCountMap);
         return res;
     }
 
     /**
      * 求解最优命中匹配数
+     * 核心是求解每个索引的前缀的最后一个匹配至多包含一个非等值查询的情况下
+     * 使得命中的列尽量多，在列一致的情况下，命中的索引数量尽量少的结果
      *
      * @param level
      * @param res
      * @param tmp
      * @param existedIndex
-     * @param queryColumns
      * @param columnCountMap
      * @return
      */
-    private static void dfs(int level, int[] res, int[] tmp, List<List<String>> existedIndex, List<String> queryColumns, Map<String, Integer> columnCountMap) {
+    private static void dfs(int level, int[] res, int[] tmp, List<List<String>> existedIndex, Map<String, Integer> columnCountMap) {
         // 遍历完毕则验证结果
         if (level == tmp.length) {
             if (validate(columnCountMap)) {
@@ -129,7 +143,7 @@ public class IndexUtils {
                 int sumRes = sum(res);
                 int sumTmp = sum(tmp);
                 // 如果tmp命中的column大于原先的结果，或者两者相等并且tmp命中的索引数量较少
-                if ((sumTmp > sumRes) || ((sumTmp == sumRes) && (noZeroEleCount(tmp) < noZeroEleCount(res)))) {
+                if ((sumTmp > sumRes) || ((sumTmp == sumRes) && (indexHitCount(tmp) < indexHitCount(res)))) {
                     System.arraycopy(tmp, 0, res, 0, level);
                 }
             }
@@ -140,13 +154,14 @@ public class IndexUtils {
 
             // 移除0~hitSize个元素进行dfs
             for (int i = hitSize; i >= 0; i--) {
+                // i == hitSize的情况下为不移除任何列进行dfs
                 if (i < hitSize) {
                     String removedColumn = indexes.get(i);
                     tmp[level]--;
                     Integer columnCount = columnCountMap.get(removedColumn);
                     columnCountMap.put(removedColumn, columnCount - 1);
                 }
-                dfs(level + 1, res, tmp, existedIndex, queryColumns, columnCountMap);
+                dfs(level + 1, res, tmp, existedIndex, columnCountMap);
             }
 
             // 恢复原先的结果
@@ -193,7 +208,7 @@ public class IndexUtils {
      * @param array
      * @return
      */
-    private static int noZeroEleCount(int[] array) {
+    private static int indexHitCount(int[] array) {
         int count = 0;
         for (int e : array) {
             if (e != 0) {
@@ -205,10 +220,11 @@ public class IndexUtils {
 
     /**
      * 查询是否命中了索引
+     *
      * @param hitNum
      * @return
      */
-    public static boolean hitAny(int[] hitNum) {
+    public static boolean hitAnyIdex(int[] hitNum) {
         return sum(hitNum) != 0;
     }
 }

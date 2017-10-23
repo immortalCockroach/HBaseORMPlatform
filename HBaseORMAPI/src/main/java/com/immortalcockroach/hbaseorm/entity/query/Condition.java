@@ -4,7 +4,9 @@ import com.immortalcockroach.hbaseorm.param.enums.LogicalOperatorEnum;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Condition implements Serializable {
 
@@ -48,6 +50,14 @@ public class Condition implements Serializable {
             columns.add(expression.getColumn());
         }
         return columns;
+    }
+
+    public Map<String, Integer> getQueryTypeOfColumns() {
+        Map<String, Integer> queryType = new HashMap<>();
+        for (Expression expression : expressions) {
+            queryType.put(expression.getColumn(), expression.getArithmeticOperator());
+        }
+        return queryType;
     }
 
 }

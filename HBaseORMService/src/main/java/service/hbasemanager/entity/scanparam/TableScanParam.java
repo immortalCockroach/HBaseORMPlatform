@@ -60,6 +60,7 @@ public final class TableScanParam {
             }
         } else {
             // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
+            // 虽然在新的索引命中匹配算法的情况下
             this.keyPairList = KeyPairsBuilder.buildKeyPairsNEQ(param);
         }
 

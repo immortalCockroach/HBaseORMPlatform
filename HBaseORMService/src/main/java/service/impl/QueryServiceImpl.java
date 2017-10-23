@@ -70,9 +70,9 @@ public class QueryServiceImpl implements QueryService {
         Set<String> qualifiers = new HashSet<>(Arrays.asList(queryParam.getQualifiers()));
 
         // 获得每个索引的命中信息
-        int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, queryParam.getQueryColumns());
+        int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, queryParam.getConditionColumnsType());
         // 直接全表扫描
-        if (!IndexUtils.hitAny(hitIndexNums)) {
+        if (!IndexUtils.hitAnyIdex(hitIndexNums)) {
             return null;
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, queryParam.getCondition().getExpressions(), hitIndexNums);

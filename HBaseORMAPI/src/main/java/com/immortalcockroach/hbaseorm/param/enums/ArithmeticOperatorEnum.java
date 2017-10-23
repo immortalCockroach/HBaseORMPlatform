@@ -24,6 +24,7 @@ public enum ArithmeticOperatorEnum {
 
     /**
      * 根据运算符的id得到范围
+     *
      * @param id
      * @return
      */
@@ -33,6 +34,20 @@ public enum ArithmeticOperatorEnum {
 
     public static boolean isDoubleRange(int id) {
         return id >= BETWEEN.getId() && id <= BETWEENLR.getId();
+    }
+
+    public static boolean isEqualQuery(Integer id) {
+        if (id == null) {
+            return false;
+        }
+        return EQ.getId() == id;
+    }
+
+    public static boolean isNotEqualQuery(Integer id) {
+        if (id == null) {
+            return false;
+        }
+        return NEQ.getId() == id;
     }
 
     public int getId() {
