@@ -1,5 +1,7 @@
 package com.immortalcockroach.hbaseorm.param;
 
+import com.immortalcockroach.hbaseorm.entity.query.Condition;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -8,7 +10,7 @@ public class DeleteParam implements Serializable {
     private static final long serialVersionUID = 749576580673912683L;
 
     private byte[] tableName;
-    private List<byte[]> rowkeysList;
+    private Condition condition;
 
     /**
      * 作为序列化使用，不要调用
@@ -19,11 +21,11 @@ public class DeleteParam implements Serializable {
 
     private DeleteParam(DeleteParam.DeleteParamBuilder builder) {
         this.tableName = builder.tableName;
-        this.rowkeysList = builder.rowkeysList;
+        this.condition = builder.condition;
     }
 
-    public List<byte[]> getRowkeysList() {
-        return rowkeysList;
+    public Condition getCondition() {
+        return condition;
     }
 
     public byte[] getTableName() {
@@ -35,11 +37,11 @@ public class DeleteParam implements Serializable {
      */
     public static class DeleteParamBuilder {
         private final byte[] tableName;
-        private final List<byte[]> rowkeysList;
+        private final Condition condition;
 
-        public DeleteParamBuilder(byte[] tableName, List<byte[]> rowkeysList) {
+        public DeleteParamBuilder(byte[] tableName, Condition condition) {
             this.tableName = tableName;
-            this.rowkeysList = rowkeysList;
+            this.condition = condition;
         }
 
         public DeleteParam build() {
