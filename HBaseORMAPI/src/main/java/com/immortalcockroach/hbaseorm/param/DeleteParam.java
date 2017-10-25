@@ -3,7 +3,7 @@ package com.immortalcockroach.hbaseorm.param;
 import com.immortalcockroach.hbaseorm.entity.query.Condition;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Map;
 
 public class DeleteParam implements Serializable {
 
@@ -22,6 +22,11 @@ public class DeleteParam implements Serializable {
     private DeleteParam(DeleteParam.DeleteParamBuilder builder) {
         this.tableName = builder.tableName;
         this.condition = builder.condition;
+    }
+
+    public Map<String, Integer> getConditionColumnsType() {
+
+        return this.condition.getQueryTypeOfColumns();
     }
 
     public Condition getCondition() {
