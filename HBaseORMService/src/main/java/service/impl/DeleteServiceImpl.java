@@ -31,6 +31,7 @@ import service.utils.InternalResultUtils;
 
 import javax.annotation.Resource;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -119,9 +120,9 @@ public class DeleteServiceImpl implements DeleteService {
             Set<String> unhitColumns = queryInfoWithIndexes.getUnhitColumns();
 
             // 说明不需要回表查询
-            ListResult updateRowkeys;
+            ListResult updatedRows;
             if (unhitColumns.size() == 0) {
-                updateRowkeys = InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), true);
+                updatedRows = InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), true);
             } else {
                 LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
                 // 构造回表查询的列，然后回表查询
@@ -132,24 +133,27 @@ public class DeleteServiceImpl implements DeleteService {
                     Map.Entry<ByteBuffer, IndexLine> entry = iterator.next();
                     // 如果不在合并的结果里，则remove
                     ByteBuffer rowkey = entry.getKey();
-                    PlainResult backTableLine = getter.read(tableName, rowkey.array(), backTableQualifiers);
+                    PlainResult backTableLine = getter.read(tableName, rowkey.array(), new String[]{});
                     if (!backTableLine.getSuccess() || backTableLine.getSize() == 0) {
                         iterator.remove();
                         continue;
                     }
                     // 验证回表查询的结果，然后和当前的line合并
                     JSONObject line = backTableLine.getData();
-                    if (!filter.check(line)) {
+                    // 此处不移除列，后面要建立索引表的删除的行健
+                    if (!filter.check(line, false)) {
                         iterator.remove();
                         continue;
                     }
 
                     // 这里不需要merge新查询出来的行，因为delete的第一次查询只需要取rowkey
                 }
-                updateRowkeys = InternalResultUtils.buildResult(mergedMap, true);
+                updatedRows = InternalResultUtils.buildResult(mergedMap, true);
             }
-            // TODO: 2017-10-25 根据updateRowkey信息去删除数据表和索引表中对应的记录 
 
+            tableDeleteService.deleteBatch(tableName, buildDataTableRowKey(updatedRows));
+            tableDeleteService.deleteBatch(ByteArrayUtils.getIndexTableName(tableName),
+                    buildIndexTableRowKey(updatedRows, existedIndex));
         }
         return ResultUtil.getSuccessBaseResult();
     }
@@ -185,5 +189,34 @@ public class DeleteServiceImpl implements DeleteService {
         res.addAll(unhitColumns);
         res.addAll(leftColumns);
         return res.toArray(new String[]{});
+    }
+
+    private List<byte[]> buildDataTableRowKey(ListResult updatedRows) {
+        int size = updatedRows.getSize();
+        List<byte[]> rowkeys = new ArrayList<>(size);
+        JSONArray array = updatedRows.getData();
+
+        for (int i = 0; i <= size - 1; i++) {
+            JSONObject row = array.getJSONObject(i);
+            rowkeys.add(row.getBytes(CommonConstants.ROW_KEY));
+        }
+        return rowkeys;
+    }
+
+    private List<byte[]> buildIndexTableRowKey(ListResult updatedRows, List<Index> indexes) {
+        int size = updatedRows.getSize();
+        List<byte[]> rowkeys = new ArrayList<>(size * indexes.size());
+        JSONArray array = updatedRows.getData();
+
+        for (int i = 0; i <= size - 1; i++) {
+            // 针对每一行，构建所有索引的索引表行健
+            JSONObject row = array.getJSONObject(i);
+            for (Index index : indexes) {
+                String[] qualifiers = index.getIndexColumnList().toArray(new String[]{});
+                rowkeys.add(ByteArrayUtils.generateIndexRowKey(row, qualifiers, (byte) index.getIndexNum()));
+
+            }
+        }
+        return rowkeys;
     }
 }

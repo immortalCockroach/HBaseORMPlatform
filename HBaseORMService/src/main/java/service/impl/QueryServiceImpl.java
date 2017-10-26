@@ -136,7 +136,7 @@ public class QueryServiceImpl implements QueryService {
                     }
                     // 验证回表查询的结果，然后和当前的line合并
                     JSONObject line = backTableLine.getData();
-                    if (!filter.check(line)) {
+                    if (!filter.check(line, true)) {
                         iterator.remove();
                         continue;
                     } else {

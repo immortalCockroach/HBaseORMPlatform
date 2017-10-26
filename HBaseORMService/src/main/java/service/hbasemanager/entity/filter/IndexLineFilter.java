@@ -24,6 +24,7 @@ public class IndexLineFilter {
     private Index index;
     private int hitNum;
     private Map<String, Expression> expressionMap;
+    // 查询的列
     private Set<String> qualifiers;
     private TableDescriptor descriptor;
 
@@ -108,7 +109,7 @@ public class IndexLineFilter {
      * @param line
      * @return
      */
-    public boolean check(JSONObject line) {
+    public boolean check(JSONObject line, boolean remove) {
 
         for (String column : line.keySet()) {
             Expression expression = expressionMap.get(column);
@@ -121,7 +122,7 @@ public class IndexLineFilter {
                     return false;
                 } else {
                     // 如果不在qualiiers中，则剔除该列
-                    if (!qualifiers.contains(column)) {
+                    if (remove && !qualifiers.contains(column)) {
                         line.remove(column);
                     }
                 }
