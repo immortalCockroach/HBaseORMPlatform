@@ -25,6 +25,7 @@ import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
 import service.utils.ByteArrayUtils;
 import service.utils.IndexUtils;
+import service.utils.InternalResultUtils;
 
 import javax.annotation.Resource;
 import java.nio.ByteBuffer;
@@ -55,11 +56,11 @@ public class QueryServiceImpl implements QueryService {
     private GlobalTableDescInfoHolder descInfoHolder;
 
     @Override
-    public AbstractResult query(QueryParam queryParam) {
+    public ListResult query(QueryParam queryParam) {
         byte[] tableName = queryParam.getTableName();
         // 检测表是否存在
         if (!HBaseTableUtils.tableExists(tableName)) {
-            return ResultUtil.getFailedPlainResult("表" + Bytes.toString(tableName) + "不存在");
+            return ResultUtil.getFailedListResult("表" + Bytes.toString(tableName) + "不存在");
         }
 
         // 存在的索引信息
@@ -117,11 +118,11 @@ public class QueryServiceImpl implements QueryService {
             Set<String> leftColumns = mergedResult.getLeftColumns();
             // 说明不需要回表查询
             if (unhitColumns.size() == 0 && leftColumns.size() == 0) {
-                return buildResult(mergedResult.getMergedLineMap(), qualifiers.contains(CommonConstants.ROW_KEY));
+                return InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), qualifiers.contains(CommonConstants.ROW_KEY));
             } else {
                 LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
                 // 构造回表查询的列，然后回表查询
-                String[] backTableQualifiers = buildQualifiersForBackTable(unhitColumns, leftColumns);
+                String[] backTableQualifiers = InternalResultUtils.buildQualifiersForBackTable(unhitColumns, leftColumns);
 
                 Iterator<Map.Entry<ByteBuffer, IndexLine>> iterator = mergedMap.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -144,41 +145,9 @@ public class QueryServiceImpl implements QueryService {
                         oldLine.mergeLine(line);
                     }
                 }
-                return buildResult(mergedMap, qualifiers.contains(CommonConstants.ROW_KEY));
+                return InternalResultUtils.buildResult(mergedMap, qualifiers.contains(CommonConstants.ROW_KEY));
             }
         }
     }
 
-    /**
-     * 将结果转换为相应的形式
-     *
-     * @param mergedResult
-     * @return
-     */
-    private AbstractResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult, boolean containsRowkey) {
-        JSONArray array = new JSONArray();
-        for (IndexLine indexLine : mergedResult.values()) {
-            JSONObject tmp = indexLine.toJSONObject();
-            // 由于IndexLine的map不包含rowkey，如果查询结果中要求rowkey的话，单独加上
-            if (containsRowkey) {
-                tmp.put(CommonConstants.ROW_KEY, indexLine.getRowkey());
-            }
-            array.add(indexLine.toJSONObject());
-        }
-        return ResultUtil.getSuccessListResult(array);
-    }
-
-    /**
-     * 根据需要filter的列和待查询的列构造回表查询的qualifiers
-     *
-     * @param unhitColumns
-     * @param leftColumns
-     * @return
-     */
-    private String[] buildQualifiersForBackTable(Set<String> unhitColumns, Set<String> leftColumns) {
-        Set<String> res = new HashSet<>();
-        res.addAll(unhitColumns);
-        res.addAll(leftColumns);
-        return res.toArray(new String[]{});
-    }
 }

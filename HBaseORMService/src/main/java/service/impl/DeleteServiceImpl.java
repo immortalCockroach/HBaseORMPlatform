@@ -1,9 +1,11 @@
 package service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.api.DeleteService;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.param.DeleteParam;
+import com.immortalcockroach.hbaseorm.result.AbstractResult;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
@@ -25,9 +27,11 @@ import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
 import service.utils.ByteArrayUtils;
 import service.utils.IndexUtils;
+import service.utils.InternalResultUtils;
 
 import javax.annotation.Resource;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -76,8 +80,10 @@ public class DeleteServiceImpl implements DeleteService {
                     .getExpressions(), hitIndexNums);
             // size代表该表的索引数量
             int size = hitIndexNums.length;
-            MergedResult mergedResult = new MergedResult(qualifiers);
-            IndexLineFilter filter = new IndexLineFilter(queryInfoWithIndexes.getExpressionMap(), qualifiers, descriptor);
+            // 传入的参数不需要筛选列，只需要保留rowkey即可
+            MergedResult mergedResult = new MergedResult(new HashSet<String>());
+            // 传入的参数不需要筛选列，只需要保留rowkey即可
+            IndexLineFilter filter = new IndexLineFilter(queryInfoWithIndexes.getExpressionMap(), new HashSet<String>(), descriptor);
             for (int i = 0; i <= size - 1; i++) {
                 // 代表该索引没有被命中，跳过
                 if (hitIndexNums[i] == 0) {
@@ -111,15 +117,15 @@ public class DeleteServiceImpl implements DeleteService {
             }
             // 未被索引命中的查询条件
             Set<String> unhitColumns = queryInfoWithIndexes.getUnhitColumns();
-            // 不在索引列中的筛选列
-            Set<String> leftColumns = mergedResult.getLeftColumns();
+
             // 说明不需要回表查询
-            if (unhitColumns.size() == 0 && leftColumns.size() == 0) {
-                return buildResult(mergedResult.getMergedLineMap(), qualifiers.contains(CommonConstants.ROW_KEY));
+            ListResult updateRowkeys;
+            if (unhitColumns.size() == 0) {
+                updateRowkeys = InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), true);
             } else {
                 LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
                 // 构造回表查询的列，然后回表查询
-                String[] backTableQualifiers = buildQualifiersForBackTable(unhitColumns, leftColumns);
+                String[] backTableQualifiers = buildQualifiersForBackTable(unhitColumns, new HashSet<String>());
 
                 Iterator<Map.Entry<ByteBuffer, IndexLine>> iterator = mergedMap.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -136,14 +142,48 @@ public class DeleteServiceImpl implements DeleteService {
                     if (!filter.check(line)) {
                         iterator.remove();
                         continue;
-                    } else {
-                        // 将2个结果merge
-                        IndexLine oldLine = entry.getValue();
-                        oldLine.mergeLine(line);
                     }
+
+                    // 这里不需要merge新查询出来的行，因为delete的第一次查询只需要取rowkey
                 }
-                return buildResult(mergedMap, qualifiers.contains(CommonConstants.ROW_KEY));
+                updateRowkeys = InternalResultUtils.buildResult(mergedMap, true);
             }
+            // TODO: 2017-10-25 根据updateRowkey信息去删除数据表和索引表中对应的记录 
+
         }
+        return ResultUtil.getSuccessBaseResult();
+    }
+
+    /**
+     * 将结果转换为相应的形式
+     *
+     * @param mergedResult
+     * @return
+     */
+    private AbstractResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult, boolean containsRowkey) {
+        JSONArray array = new JSONArray();
+        for (IndexLine indexLine : mergedResult.values()) {
+            JSONObject tmp = indexLine.toJSONObject();
+            // 由于IndexLine的map不包含rowkey，如果查询结果中要求rowkey的话，单独加上
+            if (containsRowkey) {
+                tmp.put(CommonConstants.ROW_KEY, indexLine.getRowkey());
+            }
+            array.add(indexLine.toJSONObject());
+        }
+        return ResultUtil.getSuccessListResult(array);
+    }
+
+    /**
+     * 根据需要filter的列和待查询的列构造回表查询的qualifiers
+     *
+     * @param unhitColumns
+     * @param leftColumns
+     * @return
+     */
+    private String[] buildQualifiersForBackTable(Set<String> unhitColumns, Set<String> leftColumns) {
+        Set<String> res = new HashSet<>();
+        res.addAll(unhitColumns);
+        res.addAll(leftColumns);
+        return res.toArray(new String[]{});
     }
 }
