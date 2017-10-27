@@ -1,11 +1,9 @@
 package service.impl;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.api.QueryService;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.param.QueryParam;
-import com.immortalcockroach.hbaseorm.result.AbstractResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
@@ -136,7 +134,7 @@ public class QueryServiceImpl implements QueryService {
                     }
                     // 验证回表查询的结果，然后和当前的line合并
                     JSONObject line = backTableLine.getData();
-                    if (!filter.check(line)) {
+                    if (!filter.check(line, true)) {
                         iterator.remove();
                         continue;
                     } else {

@@ -139,7 +139,7 @@ public class DeleteServiceImpl implements DeleteService {
                     }
                     // 验证回表查询的结果，然后和当前的line合并
                     JSONObject line = backTableLine.getData();
-                    if (!filter.check(line)) {
+                    if (!filter.check(line, false)) {
                         iterator.remove();
                         continue;
                     }
@@ -148,7 +148,7 @@ public class DeleteServiceImpl implements DeleteService {
                 }
                 updateRowkeys = InternalResultUtils.buildResult(mergedMap, true);
             }
-            // TODO: 2017-10-25 根据updateRowkey信息去删除数据表和索引表中对应的记录 
+            // 根据updateRowkey信息去删除数据表和索引表中对应的记录
 
         }
         return ResultUtil.getSuccessBaseResult();

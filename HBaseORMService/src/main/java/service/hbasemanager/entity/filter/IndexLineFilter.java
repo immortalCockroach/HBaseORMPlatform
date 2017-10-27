@@ -6,7 +6,6 @@ import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
-import org.apache.commons.lang.ArrayUtils;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.scanresult.IndexLine;
@@ -108,7 +107,7 @@ public class IndexLineFilter {
      * @param line
      * @return
      */
-    public boolean check(JSONObject line) {
+    public boolean check(JSONObject line, boolean remove) {
 
         for (String column : line.keySet()) {
             Expression expression = expressionMap.get(column);
@@ -121,7 +120,7 @@ public class IndexLineFilter {
                     return false;
                 } else {
                     // 如果不在qualiiers中，则剔除该列
-                    if (!qualifiers.contains(column)) {
+                    if (remove && !qualifiers.contains(column)) {
                         line.remove(column);
                     }
                 }
