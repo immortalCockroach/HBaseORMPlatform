@@ -48,7 +48,7 @@ public class InsertServiceImpl implements InsertService {
             return ResultUtil.getFailedBaseResult("插入数据错误，请稍后重试");
         }
         // 获得命中的索引
-        List<Index> hitIndexes = tableIndexService.getHitIndexesWithinQualifiersWhenInsert(tableName, insertParam
+        List<Index> hitIndexes = tableIndexService.getHitIndexesWithinQualifiers(tableName, insertParam
                 .getQualifiers());
         // 代表有索引命中了
         if (hitIndexes != null && hitIndexes.size() > 0) {

@@ -38,6 +38,10 @@ public class UpdateParam implements Serializable {
         return tableName;
     }
 
+    public Map<String, byte[]> getUpdateValues() {
+        return updateValues;
+    }
+
     /**
      * 多参数构造器模型
      */

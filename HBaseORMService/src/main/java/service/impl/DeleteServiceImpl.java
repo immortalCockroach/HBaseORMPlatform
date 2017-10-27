@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.api.DeleteService;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.param.DeleteParam;
-import com.immortalcockroach.hbaseorm.result.AbstractResult;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
@@ -126,7 +125,7 @@ public class DeleteServiceImpl implements DeleteService {
             } else {
                 LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
                 // 构造回表查询的列，然后回表查询
-                String[] backTableQualifiers = buildQualifiersForBackTable(unhitColumns, new HashSet<String>());
+                String[] backTableQualifiers = InternalResultUtils.buildQualifiersForBackTable(unhitColumns, new HashSet<String>());
 
                 Iterator<Map.Entry<ByteBuffer, IndexLine>> iterator = mergedMap.entrySet().iterator();
                 while (iterator.hasNext()) {
@@ -153,44 +152,11 @@ public class DeleteServiceImpl implements DeleteService {
             // 根据updateRowkey信息去删除数据表和索引表中对应的记录
 
             tableDeleteService.deleteBatch(tableName, buildDataTableRowKey(updatedRows));
-            tableDeleteService.deleteBatch(ByteArrayUtils.getIndexTableName(tableName),
-                    buildIndexTableRowKey(updatedRows, existedIndex));
+            tableDeleteService.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(updatedRows, existedIndex));
         }
         return ResultUtil.getSuccessBaseResult();
     }
 
-    /**
-     * 将结果转换为相应的形式
-     *
-     * @param mergedResult
-     * @return
-     */
-    private AbstractResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult, boolean containsRowkey) {
-        JSONArray array = new JSONArray();
-        for (IndexLine indexLine : mergedResult.values()) {
-            JSONObject tmp = indexLine.toJSONObject();
-            // 由于IndexLine的map不包含rowkey，如果查询结果中要求rowkey的话，单独加上
-            if (containsRowkey) {
-                tmp.put(CommonConstants.ROW_KEY, indexLine.getRowkey());
-            }
-            array.add(indexLine.toJSONObject());
-        }
-        return ResultUtil.getSuccessListResult(array);
-    }
-
-    /**
-     * 根据需要filter的列和待查询的列构造回表查询的qualifiers
-     *
-     * @param unhitColumns
-     * @param leftColumns
-     * @return
-     */
-    private String[] buildQualifiersForBackTable(Set<String> unhitColumns, Set<String> leftColumns) {
-        Set<String> res = new HashSet<>();
-        res.addAll(unhitColumns);
-        res.addAll(leftColumns);
-        return res.toArray(new String[]{});
-    }
 
     private List<byte[]> buildDataTableRowKey(ListResult updatedRows) {
         int size = updatedRows.getSize();
@@ -204,20 +170,5 @@ public class DeleteServiceImpl implements DeleteService {
         return rowkeys;
     }
 
-    private List<byte[]> buildIndexTableRowKey(ListResult updatedRows, List<Index> indexes) {
-        int size = updatedRows.getSize();
-        List<byte[]> rowkeys = new ArrayList<>(size * indexes.size());
-        JSONArray array = updatedRows.getData();
 
-        for (int i = 0; i <= size - 1; i++) {
-            // 针对每一行，构建所有索引的索引表行健
-            JSONObject row = array.getJSONObject(i);
-            for (Index index : indexes) {
-                String[] qualifiers = index.getIndexColumnList().toArray(new String[]{});
-                rowkeys.add(ByteArrayUtils.generateIndexRowKey(row, qualifiers, (byte) index.getIndexNum()));
-
-            }
-        }
-        return rowkeys;
-    }
 }

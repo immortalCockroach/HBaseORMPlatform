@@ -1,7 +1,10 @@
 package service.utils;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
+import com.immortalcockroach.hbaseorm.result.ListResult;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
 
@@ -31,7 +34,7 @@ public class IndexUtils {
         return builder.substring(0, builder.length() - 1);
     }
 
-    public static List<Index> getHitIndexesWithinQualifiersWhenInsert(String[] qualifiers, List<Index> existedIndexes) {
+    public static List<Index> getHitIndexesWithinQualifiersWhenInsertOrUpdate(String[] qualifiers, List<Index> existedIndexes) {
         List<Index> res = new ArrayList<>();
         // qualifiers的集合
         Set<String> operColumns = new HashSet<>();
@@ -50,8 +53,8 @@ public class IndexUtils {
                     break;
                 }
             }
-            // 全部命中才算是命中
-            if (hitNum == existedIndex.getIndexColumnList().size()) {
+            // 有一个命中就算命中了
+            if (hitNum > 0) {
                 res.add(existedIndex);
             }
 
@@ -114,7 +117,7 @@ public class IndexUtils {
             maxRes[idx] = hitCount;
             idx++;
         }
-        // 如果只命中了小于等于1个索引或者当前的命中已经合法，则直接返回即可
+        // 如果只命中了小于等于1个索引或者当前的命中已经合法(此时为最大可能的匹配)，则直接返回即可
         if (indexHitCount(maxRes) <= 1 || validate(columnCountMap)) {
             return maxRes;
         }
@@ -226,5 +229,22 @@ public class IndexUtils {
      */
     public static boolean hitAnyIdex(int[] hitNum) {
         return sum(hitNum) != 0;
+    }
+
+    public static List<byte[]> buildIndexTableRowKey(ListResult updatedRows, List<Index> indexes) {
+        int size = updatedRows.getSize();
+        List<byte[]> rowkeys = new ArrayList<>(size * indexes.size());
+        JSONArray array = updatedRows.getData();
+
+        for (int i = 0; i <= size - 1; i++) {
+            // 针对每一行，构建所有索引的索引表行健
+            JSONObject row = array.getJSONObject(i);
+            for (Index index : indexes) {
+                String[] qualifiers = index.getIndexColumnList().toArray(new String[]{});
+                rowkeys.add(ByteArrayUtils.generateIndexRowKey(row, qualifiers, (byte) index.getIndexNum()));
+
+            }
+        }
+        return rowkeys;
     }
 }
