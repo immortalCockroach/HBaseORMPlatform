@@ -6,7 +6,6 @@ import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
-import org.apache.commons.lang.ArrayUtils;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.scanresult.IndexLine;

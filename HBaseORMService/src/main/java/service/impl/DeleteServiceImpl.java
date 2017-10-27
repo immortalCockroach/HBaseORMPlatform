@@ -150,6 +150,7 @@ public class DeleteServiceImpl implements DeleteService {
                 }
                 updatedRows = InternalResultUtils.buildResult(mergedMap, true);
             }
+            // 根据updateRowkey信息去删除数据表和索引表中对应的记录
 
             tableDeleteService.deleteBatch(tableName, buildDataTableRowKey(updatedRows));
             tableDeleteService.deleteBatch(ByteArrayUtils.getIndexTableName(tableName),
