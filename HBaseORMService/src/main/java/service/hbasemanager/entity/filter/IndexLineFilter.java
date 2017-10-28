@@ -106,6 +106,7 @@ public class IndexLineFilter {
      * 验证过后的line为去除非查询的列的JSONObject
      *
      * @param line
+     * @param remove 代表是否要移除掉不在qualifier中的列，如果是查询，则移除；如果是删除或者更新，则不删除
      * @return
      */
     public boolean check(JSONObject line, boolean remove) {

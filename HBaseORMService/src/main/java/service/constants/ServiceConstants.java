@@ -9,6 +9,7 @@ import com.immortalcockroach.hbaseorm.util.Bytes;
 public class ServiceConstants {
     public static final byte EOT = 4; // 分隔符
     public static final byte ESC = 27; // 转义符
+    public static final byte NULL = 0; // null值替代符
 
 
     public static final String TABLE = "table";

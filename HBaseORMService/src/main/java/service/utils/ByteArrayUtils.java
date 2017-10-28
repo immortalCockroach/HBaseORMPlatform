@@ -39,18 +39,24 @@ public class ByteArrayUtils {
         for (int i = 0; i <= size - 1; i++) {
             List<Byte> tmp = new ArrayList<>();
             byte[] array = list[i];
-            for (byte b : array) {
-                // 转义符或者分隔符前面加上转义，即ESC->ESC ESC, EOT->ESC EOT
-                if (b == separator || b == escape) {
-                    // 填充转义符以及原先的字符
-                    tmp.add(escape);
-                    tmp.add(b);
-                } else {
-                    // 普通字符直接填充
-                    tmp.add(b);
+            // 加入对NULL字段的支持
+            if (array == null) {
+                tmp.add(escape);
+                tmp.add(ServiceConstants.NULL);
+            } else {
+                for (byte b : array) {
+                    // 转义符或者分隔符前面加上转义，即ESC->ESC ESC, EOT->ESC EOT
+                    if (b == separator || b == escape) {
+                        // 填充转义符以及原先的字符
+                        tmp.add(escape);
+                        tmp.add(b);
+                    } else {
+                        // 普通字符直接填充
+                        tmp.add(b);
+                    }
                 }
-
             }
+
             Byte[] newArray = new Byte[tmp.size()];
             length += newArray.length;
             tmp.toArray(newArray);
@@ -72,7 +78,7 @@ public class ByteArrayUtils {
     public static byte[] concat(byte[][] list, byte separator, int length, boolean includeLastValue) {
         int size = list.length;
         // length个字节的长度 加上size - 1个分割符，
-        // 如果因为构建索引表扫描前缀不需要最后一个value时，则减掉最后一个value的长度（但是之前的_依旧保留）
+        // 如果构建索引表扫描前缀不需要最后一个value时，则减掉最后一个value的长度（但是之前的_依旧保留）
         byte[] res = new byte[length + size - 1 - (includeLastValue ? 0 : list[size - 1].length)];
         int index = 0;
         for (int i = 0; i <= size - 2; i++) {
@@ -109,7 +115,8 @@ public class ByteArrayUtils {
 
         int index = 0;
         List<Byte> tmp = new ArrayList<>();
-
+        // 用于甄别NUL的
+        int lastSep = -1;
         while (index <= size - 1) {
             byte content = array[index];
             if (content == escape) {
@@ -121,7 +128,19 @@ public class ByteArrayUtils {
                 // 分隔符，直接跳过
                 Byte[] newArray = new Byte[tmp.size()];
                 tmp.toArray(newArray);
-                list.add(ArrayUtils.toPrimitive(newArray));
+                // NUL的转义需要单独处理（可能是转义的NUL，也可能实际的内容就是NUL）
+                if (newArray.length == 1 && newArray[0] == ServiceConstants.NULL) {
+                    // 如果差3个位置，说明是_\NUL_的形式
+                    if (index - lastSep == 3) {
+                        newArray = new Byte[0];
+                        list.add(ArrayUtils.toPrimitive(newArray));
+                    } else {
+                        list.add(ArrayUtils.toPrimitive(newArray));
+                    }
+                } else {
+                    list.add(ArrayUtils.toPrimitive(newArray));
+                }
+                lastSep = index;
                 index++;
                 // 清空tmp中的内容
                 tmp.clear();
@@ -130,7 +149,7 @@ public class ByteArrayUtils {
                 index++;
             }
         }
-        // 将最后一段加入
+        // 将最后一段加入（最后一段是rowkey）
         Byte[] newArray = new Byte[tmp.size()];
         tmp.toArray(newArray);
         list.add(ArrayUtils.toPrimitive(newArray));
@@ -163,6 +182,14 @@ public class ByteArrayUtils {
         return res;
     }
 
+    /**
+     * 同上面的函数
+     *
+     * @param line
+     * @param qualifiers
+     * @param indexNum
+     * @return
+     */
     public static byte[][] mapToByteArray(Map<String, byte[]> line, String[] qualifiers, byte indexNum) {
         int size = qualifiers.length;
         // 总长度为qualifies.length * 2  + 2对应 length * 2个col + colv 以及1个rowkey、1个indexNum的值
@@ -287,6 +314,27 @@ public class ByteArrayUtils {
      * @return
      */
     public static boolean checkValueRange(byte[] value, Expression expression, Integer columnType) {
+        byte[] expressionValue = expression.getValue();
+        Integer operatorId = expression.getArithmeticOperator();
+        if (ArrayUtils.isEmpty(value) || ArrayUtils.isEmpty(expressionValue)) {
+            if (operatorId == ArithmeticOperatorEnum.EQ.getId()) {
+                if (ArrayUtils.isEmpty(expressionValue) && ArrayUtils.isEmpty(value)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (operatorId == ArithmeticOperatorEnum.NEQ.getId()) {
+                // 如果非2个都null 则为true
+                if (!(ArrayUtils.isEmpty(expressionValue) && ArrayUtils.isEmpty(value))) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                // 有null 但是是范围查询，则一定错误
+                return false;
+            }
+        }
         switch (columnType) {
             case 0:
                 return checkString(Bytes.toString(value), expression);
