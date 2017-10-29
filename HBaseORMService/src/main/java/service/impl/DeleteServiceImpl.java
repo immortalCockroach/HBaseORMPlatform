@@ -10,6 +10,7 @@ import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
+import org.apache.hadoop.hbase.filter.Filter;
 import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
 import service.hbasemanager.creation.tabledesc.GlobalTableDescInfoHolder;
 import service.hbasemanager.deletion.TableDeleteService;
@@ -25,6 +26,7 @@ import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
 import service.utils.ByteArrayUtils;
+import service.utils.FilterUtils;
 import service.utils.IndexUtils;
 import service.utils.InternalResultUtils;
 
@@ -41,7 +43,7 @@ import java.util.Set;
 public class DeleteServiceImpl implements DeleteService {
 
     @Resource
-    private TableDeleteService tableDeleteService;
+    private TableDeleteService deleter;
 
     @Resource
     private TableScanService scanner;
@@ -74,7 +76,9 @@ public class DeleteServiceImpl implements DeleteService {
         int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, deleteParam.getConditionColumnsType());
         // 直接全表扫描
         if (!IndexUtils.hitAnyIdex(hitIndexNums)) {
-            return null;
+            Filter filter = FilterUtils.buildFilterListWithCondition(deleteParam.getCondition(), descriptor);
+            ListResult tmp = scanner.scan(tableName, new String[]{CommonConstants.ROW_KEY}, filter);
+            return deleter.deleteBatch(tableName, buildDataTableRowKey(tmp));
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, deleteParam.getCondition()
                     .getExpressions(), hitIndexNums);
@@ -151,10 +155,10 @@ public class DeleteServiceImpl implements DeleteService {
             }
             // 根据updateRowkey信息去删除数据表和索引表中对应的记录
 
-            tableDeleteService.deleteBatch(tableName, buildDataTableRowKey(updatedRows));
-            tableDeleteService.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(updatedRows, existedIndex));
+            deleter.deleteBatch(tableName, buildDataTableRowKey(updatedRows));
+            deleter.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(updatedRows, existedIndex));
+            return ResultUtil.getSuccessBaseResult();
         }
-        return ResultUtil.getSuccessBaseResult();
     }
 
 

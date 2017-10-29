@@ -14,7 +14,7 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.filter.PrefixFilter;
+import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -43,11 +43,10 @@ public class TableScanService {
      * @param tableName
      * @param startRow
      * @param stopRow
-     * @param prefix
      * @param columnQualifiers
      * @return
      */
-    public ListResult scan(byte[] tableName, byte[] startRow, byte[] stopRow, byte[] prefix, String[] columnQualifiers) {
+    public ListResult scan(byte[] tableName, byte[] startRow, byte[] stopRow, String[] columnQualifiers, Filter filter) {
 
         Connection connection = HBaseConnectionPool.getConnection();
 
@@ -62,9 +61,7 @@ public class TableScanService {
             if (stopRow != null) {
                 scan.setStopRow(stopRow);
             }
-            if (prefix != null) {
-                scan.setFilter(new PrefixFilter(prefix));
-            }
+
             // 此处只设置列族，qualifiers用于查询结果的手动过滤
             scan.addFamily(family);
 
@@ -131,11 +128,11 @@ public class TableScanService {
     }
 
     public ListResult scan(byte[] tableName, String[] qualifers) {
-        return this.scan(tableName, null, null, null, qualifers);
+        return this.scan(tableName, null, null, qualifers, null);
     }
 
-    public ListResult scan(byte[] tableName, byte[] startKey, byte[] endKey, String[] qualifers) {
-        return this.scan(tableName, startKey, endKey, null, qualifers);
+    public ListResult scan(byte[] tableName, String[] qualifers, Filter filter) {
+        return this.scan(tableName, null, null, qualifers, null);
     }
 
 }

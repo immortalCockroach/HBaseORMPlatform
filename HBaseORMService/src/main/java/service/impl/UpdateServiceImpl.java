@@ -10,6 +10,7 @@ import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
+import org.apache.hadoop.hbase.filter.Filter;
 import service.constants.ServiceConstants;
 import service.hbasemanager.creation.TableIndexService;
 import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
@@ -28,6 +29,7 @@ import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
 import service.utils.ByteArrayUtils;
+import service.utils.FilterUtils;
 import service.utils.IndexUtils;
 import service.utils.InternalResultUtils;
 
@@ -44,10 +46,10 @@ import java.util.Set;
 
 public class UpdateServiceImpl implements UpdateService {
     @Resource
-    private TableInsertService tableInsertService;
+    private TableInsertService inserter;
 
     @Resource
-    private TableDeleteService tableDeleteService;
+    private TableDeleteService deleter;
 
     @Resource
     private TableScanService scanner;
@@ -81,7 +83,9 @@ public class UpdateServiceImpl implements UpdateService {
         int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, updateParam.getConditionColumnsType());
         // 直接全表扫描
         if (!IndexUtils.hitAnyIdex(hitIndexNums)) {
-            return null;
+            Filter filter = FilterUtils.buildFilterListWithCondition(updateParam.getCondition(), descriptor);
+            ListResult tmp = scanner.scan(tableName, new String[]{CommonConstants.ROW_KEY}, filter);
+            return inserter.insertBatch(tableName, buildDataTablePuts(tmp, updateParam.getUpdateValues()));
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, updateParam.getCondition()
                     .getExpressions(), hitIndexNums);
@@ -166,16 +170,17 @@ public class UpdateServiceImpl implements UpdateService {
             List<Index> hitIndexes = tableIndexService.getHitIndexesWithinQualifiers(tableName, updateQualifiers);
             if (hitIndexes.size() > 0) {
                 byte[] indexTable = ByteArrayUtils.getIndexTableName(tableName);
-                tableDeleteService.deleteBatch(indexTable, IndexUtils.buildIndexTableRowKey(updatedRows, hitIndexes));
-                tableInsertService.insertBatch(indexTable, buildIndexTablePuts(updatedRows, updateValues, hitIndexes));
+                deleter.deleteBatch(indexTable, IndexUtils.buildIndexTableRowKey(updatedRows, hitIndexes));
+                inserter.insertBatch(indexTable, buildIndexTablePuts(updatedRows, updateValues, hitIndexes));
 
             }
 
             // 3. 更新表数据
             List<Map<String, byte[]>> newPuts = buildDataTablePuts(updatedRows, updateValues);
-            tableInsertService.insertBatch(tableName, newPuts);
+            inserter.insertBatch(tableName, newPuts);
+            return ResultUtil.getSuccessBaseResult();
         }
-        return ResultUtil.getSuccessBaseResult();
+
     }
 
     private List<Map<String, byte[]>> buildDataTablePuts(ListResult updatedRows, Map<String, byte[]> updatedValues) {

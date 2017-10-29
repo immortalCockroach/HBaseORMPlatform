@@ -8,6 +8,7 @@ import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
+import org.apache.hadoop.hbase.filter.Filter;
 import service.hbasemanager.creation.index.GlobalIndexInfoHolder;
 import service.hbasemanager.creation.tabledesc.GlobalTableDescInfoHolder;
 import service.hbasemanager.entity.filter.IndexLineFilter;
@@ -22,6 +23,7 @@ import service.hbasemanager.read.TableGetService;
 import service.hbasemanager.read.TableScanService;
 import service.hbasemanager.utils.HBaseTableUtils;
 import service.utils.ByteArrayUtils;
+import service.utils.FilterUtils;
 import service.utils.IndexUtils;
 import service.utils.InternalResultUtils;
 
@@ -34,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 /**
  * 查询API的实现，目前只有范围查询，后面会加上各种过滤的条件
@@ -72,7 +75,8 @@ public class QueryServiceImpl implements QueryService {
         int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, queryParam.getConditionColumnsType());
         // 直接全表扫描
         if (!IndexUtils.hitAnyIdex(hitIndexNums)) {
-            return null;
+            Filter filter = FilterUtils.buildFilterListWithCondition(queryParam.getCondition(), descriptor);
+            return scanner.scan(tableName, qualifiers.toArray(new String[]{}), filter);
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, queryParam.getCondition().getExpressions(), hitIndexNums);
             // size代表该表的索引数量
