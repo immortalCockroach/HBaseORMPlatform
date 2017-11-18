@@ -41,12 +41,11 @@ public class ByteArrayUtils {
             byte[] array = list[i];
             // 加入对NULL字段的支持
             if (array == null) {
-                tmp.add(escape);
                 tmp.add(ServiceConstants.NULL);
             } else {
                 for (byte b : array) {
-                    // 转义符或者分隔符前面加上转义，即ESC->ESC ESC, EOT->ESC EOT
-                    if (b == separator || b == escape) {
+                    // 转义符、分隔符、NUL前面加上转义，即ESC->ESC ESC, EOT->ESC EOT, NUL-> ESC NUL
+                    if (b == separator || b == escape || b == ServiceConstants.NULL) {
                         // 填充转义符以及原先的字符
                         tmp.add(escape);
                         tmp.add(b);
@@ -130,8 +129,8 @@ public class ByteArrayUtils {
                 tmp.toArray(newArray);
                 // NUL的转义需要单独处理（可能是转义的NUL，也可能实际的内容就是NUL）
                 if (newArray.length == 1 && newArray[0] == ServiceConstants.NULL) {
-                    // 如果差3个位置，说明是_\NUL_的形式
-                    if (index - lastSep == 3) {
+                    // 如果差2个位置，说明是_NUL_的形式
+                    if (index - lastSep == 2) {
                         newArray = new Byte[0];
                         list.add(ArrayUtils.toPrimitive(newArray));
                     } else {

@@ -12,8 +12,8 @@ import java.math.BigInteger;
  */
 public class UUIDStringSplitor implements RegionSplitter.SplitAlgorithm {
     // UUID的最大和最小，此处去掉了UUID中的4个'-'，替换为0，为了下面的分割的方便
-    final static String DEFAULT_MIN_HEX = "000000000000000000000000000000000000";
-    final static String DEFAULT_MAX_HEX = "FFFFFFFF0FFFF0FFFF0FFFF0FFFFFFFFFFFF";
+    final static String DEFAULT_MIN_HEX = "00000000000000000000000000000000";
+    final static String DEFAULT_MAX_HEX = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
 
     String firstRow = DEFAULT_MIN_HEX;
     BigInteger firstRowInt = BigInteger.ZERO;

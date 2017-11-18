@@ -26,8 +26,8 @@ public class ByteTest {
             System.out.println();
         }*/
 
-        byte[] B = new byte[]{0, 1, -1, 64};
-        System.out.println(Bytes.toInt(B));
+        byte[] B = new byte[]{2, 1, -1, 64};
+        System.out.println(Bytes.toString(B));
         /*for (byte b : B) {
             System.out.print(b + " ");
         }*/
