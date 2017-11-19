@@ -170,13 +170,23 @@ public class TableIndexService {
      * @param qualifiers
      * @return
      */
-    public List<Index> getHitIndexesWithinQualifiers(byte[] tableName, String[] qualifiers) {
+    public List<Index> getHitIndexesWhenInsertOrDelete(byte[] tableName, String[] qualifiers) {
+
+        List<Index> existedIndexes = indexInfoHolder.getTableIndexes(tableName);
+        if (existedIndexes == null || existedIndexes.size() == 0) {
+            return new ArrayList<>();
+        } else {
+            return existedIndexes;
+        }
+    }
+
+    public List<Index> getHitIndexesWhenUpdate(byte[] tableName, String[] qualifiers) {
 
         List<Index> existedIndexes = indexInfoHolder.getTableIndexes(tableName);
         if (existedIndexes == null || existedIndexes.size() == 0) {
             return new ArrayList<>();
         }
-        return IndexUtils.getHitIndexesWithinQualifiersWhenInsertOrUpdate(qualifiers, existedIndexes);
+        return IndexUtils.getHitIndexesWithinQualifiersWhenUpdate(qualifiers, existedIndexes);
     }
 
 }

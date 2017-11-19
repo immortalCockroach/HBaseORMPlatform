@@ -123,9 +123,9 @@ public class DeleteServiceImpl implements DeleteService {
             Set<String> unhitColumns = queryInfoWithIndexes.getUnhitColumns();
 
             // 说明不需要回表查询
-            ListResult updatedRows;
+            ListResult deleteRows;
             if (unhitColumns.size() == 0) {
-                updatedRows = InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), true);
+                deleteRows = InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), true);
             } else {
                 LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
                 // 构造回表查询的列，然后回表查询
@@ -151,12 +151,12 @@ public class DeleteServiceImpl implements DeleteService {
 
                     // 这里不需要merge新查询出来的行，因为delete的第一次查询只需要取rowkey
                 }
-                updatedRows = InternalResultUtils.buildResult(mergedMap, true);
+                deleteRows = InternalResultUtils.buildResult(mergedMap, true);
             }
             // 根据updateRowkey信息去删除数据表和索引表中对应的记录
 
-            deleter.deleteBatch(tableName, buildDataTableRowKey(updatedRows));
-            deleter.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(updatedRows, existedIndex));
+            deleter.deleteBatch(tableName, buildDataTableRowKey(deleteRows));
+            deleter.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(deleteRows, indexInfoHolder.getTableIndexes(tableName)));
             return ResultUtil.getSuccessBaseResult();
         }
     }

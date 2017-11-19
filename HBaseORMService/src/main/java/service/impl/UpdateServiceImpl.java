@@ -87,8 +87,8 @@ public class UpdateServiceImpl implements UpdateService {
             ListResult tmp = scanner.scan(tableName, new String[]{CommonConstants.ROW_KEY}, filter);
             return inserter.insertBatch(tableName, buildDataTablePuts(tmp, updateParam.getUpdateValues()));
         } else {
-            QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, updateParam.getCondition()
-                    .getExpressions(), hitIndexNums);
+            QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex,
+                    updateParam.getCondition().getExpressions(), hitIndexNums);
             // size代表该表的索引数量
             int size = hitIndexNums.length;
             // 传入的参数不需要筛选列，只需要保留rowkey即可
@@ -143,7 +143,7 @@ public class UpdateServiceImpl implements UpdateService {
                     Map.Entry<ByteBuffer, IndexLine> entry = iterator.next();
                     // 如果不在合并的结果里，则remove
                     ByteBuffer rowkey = entry.getKey();
-                    // 读取所有的列
+                    // 此处update时需要读取所有的列，用于构建后续的删除行键与更新行键
                     PlainResult backTableLine = getter.read(tableName, rowkey.array(), new String[]{});
                     if (!backTableLine.getSuccess() || backTableLine.getSize() == 0) {
                         iterator.remove();
@@ -151,14 +151,15 @@ public class UpdateServiceImpl implements UpdateService {
                     }
                     // 验证回表查询的结果，然后和当前的line合并
                     JSONObject line = backTableLine.getData();
-                    // 此处不移除列，后面要建立索引表的删除的行健
+                    // 此处不移除列，后面要建立索引表的更新与删除的行键
                     if (!filter.check(line, false)) {
                         iterator.remove();
                         continue;
                     }
 
-                    // 这里不需要merge新查询出来的行，因为delete的第一次查询只需要取rowkey
+
                 }
+                // 将最后符合的行构建出完整的数据表的行
                 updatedRows = InternalResultUtils.buildResult(mergedMap, true);
             }
 
@@ -167,7 +168,7 @@ public class UpdateServiceImpl implements UpdateService {
             String[] updateQualifiers = updateValues.keySet().toArray(new String[]{});
             // 1. 根据更新的列筛选出命中的索引，删除索引
             // 2. 更新索引表数据
-            List<Index> hitIndexes = tableIndexService.getHitIndexesWithinQualifiers(tableName, updateQualifiers);
+            List<Index> hitIndexes = tableIndexService.getHitIndexesWhenUpdate(tableName, updateQualifiers);
             if (hitIndexes.size() > 0) {
                 byte[] indexTable = ByteArrayUtils.getIndexTableName(tableName);
                 deleter.deleteBatch(indexTable, IndexUtils.buildIndexTableRowKey(updatedRows, hitIndexes));

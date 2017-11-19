@@ -34,7 +34,8 @@ public class IndexUtils {
         return builder.substring(0, builder.length() - 1);
     }
 
-    public static List<Index> getHitIndexesWithinQualifiersWhenInsertOrUpdate(String[] qualifiers, List<Index> existedIndexes) {
+
+    public static List<Index> getHitIndexesWithinQualifiersWhenUpdate(String[] qualifiers, List<Index> existedIndexes) {
         List<Index> res = new ArrayList<>();
         // qualifiers的集合
         Set<String> operColumns = new HashSet<>();

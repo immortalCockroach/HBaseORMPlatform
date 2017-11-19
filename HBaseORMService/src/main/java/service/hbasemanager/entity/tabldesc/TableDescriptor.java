@@ -1,6 +1,7 @@
 package service.hbasemanager.entity.tabldesc;
 
 import com.immortalcockroach.hbaseorm.entity.Column;
+import service.constants.ServiceConstants;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class TableDescriptor {
         descriptor = new HashMap<>();
 
         for (String str : columns) {
-            String[] column = str.split("_");
+            String[] column = str.split(ServiceConstants.GLOBAL_DESC_TABLE_INNER_SEPARATOR);
             descriptor.put(column[0], Integer.valueOf(column[1]));
         }
     }
