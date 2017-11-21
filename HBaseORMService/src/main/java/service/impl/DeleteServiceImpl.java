@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.api.DeleteService;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
+import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.DeleteParam;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
-import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.apache.hadoop.hbase.filter.Filter;
@@ -34,11 +34,8 @@ import javax.annotation.Resource;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class DeleteServiceImpl implements DeleteService {
 
@@ -71,14 +68,19 @@ public class DeleteServiceImpl implements DeleteService {
 
         TableDescriptor descriptor = descInfoHolder.getDescriptor(tableName);
 
-
         // 获得每个索引的命中信息
         int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, deleteParam.getConditionColumnsType());
         // 直接全表扫描
+        ListResult deleteRows;
         if (!IndexUtils.hitAnyIdex(hitIndexNums)) {
             Filter filter = FilterUtils.buildFilterListWithCondition(deleteParam.getCondition(), descriptor);
-            ListResult tmp = scanner.scan(tableName, new String[]{CommonConstants.ROW_KEY}, filter);
-            return deleter.deleteBatch(tableName, buildDataTableRowKey(tmp));
+            Expression rokweyExpression = deleteParam.getCondition().getRowKeyExp();
+            if (rokweyExpression == null) {
+                deleteRows = scanner.scan(tableName, new String[]{}, filter);
+            } else {
+                deleteRows = scanner.scan(tableName, rokweyExpression.getValue(), rokweyExpression.getOptionValue(),
+                        new String[]{}, filter);
+            }
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, deleteParam.getCondition()
                     .getExpressions(), hitIndexNums);
@@ -119,53 +121,25 @@ public class DeleteServiceImpl implements DeleteService {
                     return ResultUtil.getSuccessBaseResult();
                 }
             }
-            // 未被索引命中的查询条件
-            Set<String> unhitColumns = queryInfoWithIndexes.getUnhitColumns();
 
-            // 说明不需要回表查询
-            ListResult deleteRows;
-            if (unhitColumns.size() == 0) {
-                deleteRows = InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), true);
-            } else {
-                LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
-                // 构造回表查询的列，然后回表查询
-                String[] backTableQualifiers = InternalResultUtils.buildQualifiersForBackTable(unhitColumns, new HashSet<String>());
+            LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
+            byte[][] rowkeys = ByteArrayUtils.getRowkeys(mergedMap.keySet());
 
-                Iterator<Map.Entry<ByteBuffer, IndexLine>> iterator = mergedMap.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<ByteBuffer, IndexLine> entry = iterator.next();
-                    // 如果不在合并的结果里，则remove
-                    ByteBuffer rowkey = entry.getKey();
-                    PlainResult backTableLine = getter.read(tableName, rowkey.array(), new String[]{});
-                    if (!backTableLine.getSuccess() || backTableLine.getSize() == 0) {
-                        iterator.remove();
-                        continue;
-                    }
-                    // 验证回表查询的结果，然后和当前的line合并
-                    JSONObject line = backTableLine.getData();
-                    // 此处不移除列，后面要建立索引表的删除的行健
-                    if (!filter.check(line, false)) {
-                        iterator.remove();
-                        continue;
-                    }
-
-                    // 这里不需要merge新查询出来的行，因为delete的第一次查询只需要取rowkey
-                }
-                deleteRows = InternalResultUtils.buildResult(mergedMap, true);
-            }
-            // 根据updateRowkey信息去删除数据表和索引表中对应的记录
-
-            deleter.deleteBatch(tableName, buildDataTableRowKey(deleteRows));
-            deleter.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(deleteRows, indexInfoHolder.getTableIndexes(tableName)));
-            return ResultUtil.getSuccessBaseResult();
+            ListResult backTableRes = getter.readSeparatorLines(tableName, rowkeys, new String[]{});
+            // 获得完整的需要删除的行
+            deleteRows = InternalResultUtils.buildResult(mergedMap, backTableRes, filter, true);
         }
+
+        deleter.deleteBatch(tableName, buildDataTableRowKey(deleteRows));
+        deleter.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(deleteRows, indexInfoHolder.getTableIndexes(tableName)));
+        return ResultUtil.getSuccessBaseResult();
     }
 
 
-    private List<byte[]> buildDataTableRowKey(ListResult updatedRows) {
-        int size = updatedRows.getSize();
+    private List<byte[]> buildDataTableRowKey(ListResult deleteRows) {
+        int size = deleteRows.getSize();
         List<byte[]> rowkeys = new ArrayList<>(size);
-        JSONArray array = updatedRows.getData();
+        JSONArray array = deleteRows.getData();
 
         for (int i = 0; i <= size - 1; i++) {
             JSONObject row = array.getJSONObject(i);

@@ -6,6 +6,7 @@ import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.TableName;
@@ -46,9 +47,14 @@ public class TableGetService {
         JSONObject result = new JSONObject();
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
             Get g = new Get(rowKey);
-            for (String s : columnQualifiers) {
-                g.addColumn(family, Bytes.toBytes(s));
+            if (ArrayUtils.isEmpty(columnQualifiers)) {
+                g.addFamily(family);
+            } else {
+                for (String s : columnQualifiers) {
+                    g.addColumn(family, Bytes.toBytes(s));
+                }
             }
+
 
             // 此处直接listCells,null的话表示rowkey不存在或者查找的family:qualifer没有值，或者qualifier不存在
             Result r = table.get(g);
@@ -58,11 +64,6 @@ public class TableGetService {
             if (list != null) {
                 for (Cell c : list) {
                     result.put(Bytes.toString(CellUtil.cloneQualifier(c)), CellUtil.cloneValue(c));
-                }
-                for (String q : columnQualifiers) {
-                    if (!result.containsKey(q)) {
-                        result.put(q, null);
-                    }
                 }
                 result.put(CommonConstants.ROW_KEY, r.getRow());
             } else {
@@ -78,7 +79,7 @@ public class TableGetService {
         return ResultUtil.getSuccessPlainResult(result);
     }
 
-    public ListResult readSepratorLines(byte[] tableName, byte[][] rowKeys, String[] columnQualifiers) {
+    public ListResult readSeparatorLines(byte[] tableName, byte[][] rowKeys, String[] columnQualifiers) {
 
         Connection connection = HBaseConnectionPool.getConnection();
 
@@ -89,8 +90,12 @@ public class TableGetService {
             List<Get> gets = new ArrayList<>(size);
             for (byte[] rowkey : rowKeys) {
                 Get g = new Get(rowkey);
-                for (String s : columnQualifiers) {
-                    g.addColumn(family, Bytes.toBytes(s));
+                if (ArrayUtils.isEmpty(columnQualifiers)) {
+                    g.addFamily(family);
+                } else {
+                    for (String s : columnQualifiers) {
+                        g.addColumn(family, Bytes.toBytes(s));
+                    }
                 }
 
             }
@@ -106,12 +111,8 @@ public class TableGetService {
                     for (Cell c : list) {
                         line.put(Bytes.toString(CellUtil.cloneQualifier(c)), CellUtil.cloneValue(c));
                     }
-                    for (String q : columnQualifiers) {
-                        if (!line.containsKey(q)) {
-                            line.put(q, null);
-                        }
-                    }
                     line.put(CommonConstants.ROW_KEY, r.getRow());
+                    result.add(line);
                 }
             }
 

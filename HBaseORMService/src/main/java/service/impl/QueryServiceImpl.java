@@ -80,7 +80,6 @@ public class QueryServiceImpl implements QueryService {
                 return scanner.scan(tableName, rokweyExpression.getValue(), rokweyExpression.getOptionValue(),
                         qualifiers.toArray(new String[]{}), filter);
             }
-
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, queryParam.getCondition().getExpressions(), hitIndexNums);
             // size代表该表的索引数量
@@ -131,29 +130,8 @@ public class QueryServiceImpl implements QueryService {
                 String[] backTableQualifiers = InternalResultUtils.buildQualifiersForBackTable(unhitColumns, leftColumns);
 
                 byte[][] rowkeys = ByteArrayUtils.getRowkeys(mergedMap.keySet());
-                ListResult backTableRes = getter.readSepratorLines(tableName, rowkeys, backTableQualifiers);
-/*                while (iterator.hasNext()) {
-                    Map.Entry<ByteBuffer, IndexLine> entry = iterator.next();
-                    // 如果不在合并的结果里，则remove
-                    ByteBuffer rowkey = entry.getKey();
-                    PlainResult backTableLine = getter.read(tableName, rowkey.array(), backTableQualifiers);
-                    if (!backTableLine.getSuccess() || backTableLine.getSize() == 0) {
-                        iterator.remove();
-                        continue;
-                    }
-                    // 验证回表查询的结果，然后和当前的line合并
-                    JSONObject line = backTableLine.getData();
-                    if (!filter.check(line, true)) {
-                        iterator.remove();
-                        continue;
-                    } else {
-                        // 将2个结果merge
-                        IndexLine oldLine = entry.getValue();
-                        oldLine.mergeLine(line);
-                    }
-                }*/
-                return InternalResultUtils.buildResult(mergedMap, qualifiers.contains(CommonConstants.ROW_KEY),
-                        backTableRes, filter, false);
+                ListResult backTableRes = getter.readSeparatorLines(tableName, rowkeys, backTableQualifiers);
+                return InternalResultUtils.buildResult(mergedMap, backTableRes, filter, false);
             }
         }
     }

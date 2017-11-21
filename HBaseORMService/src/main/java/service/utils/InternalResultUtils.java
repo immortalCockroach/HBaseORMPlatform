@@ -20,7 +20,7 @@ public class InternalResultUtils {
      * @param mergedResult
      * @return
      */
-    public static ListResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult, boolean containsRowkey,
+    public static ListResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult,
                                          ListResult backTableRes, IndexLineFilter filter, boolean removed) {
         JSONArray array = new JSONArray();
         JSONArray scanRes = backTableRes.getData();
