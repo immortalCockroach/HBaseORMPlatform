@@ -61,6 +61,9 @@ public class TableScanService {
             if (stopRow != null) {
                 scan.setStopRow(stopRow);
             }
+            if (filter != null) {
+                scan.setFilter(filter);
+            }
 
             // 此处只设置列族，qualifiers用于查询结果的手动过滤
             scan.addFamily(family);
@@ -132,7 +135,6 @@ public class TableScanService {
     }
 
     public ListResult scan(byte[] tableName, String[] qualifers, Filter filter) {
-        return this.scan(tableName, null, null, qualifers, null);
+        return this.scan(tableName, null, null, qualifers, filter);
     }
-
 }

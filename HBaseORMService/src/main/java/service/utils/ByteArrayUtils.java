@@ -10,10 +10,12 @@ import service.constants.ServiceConstants;
 import service.hbasemanager.entity.scanparam.IndexParam;
 import service.hbasemanager.entity.scanparam.KeyPair;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 用于索引相关的功能，例如转义、切分等操作
@@ -348,6 +350,16 @@ public class ByteArrayUtils {
             default:
                 return false;
         }
+    }
+
+    public static byte[][] getRowkeys(Set<ByteBuffer> rowkeys) {
+        int size = rowkeys.size();
+        byte[][] res = new byte[size][];
+        int index = 0;
+        for (ByteBuffer b : rowkeys) {
+            res[index] = b.array();
+        }
+        return res;
     }
 
     public static boolean checkString(String s, Expression expression) {

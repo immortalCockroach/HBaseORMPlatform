@@ -1,5 +1,6 @@
 package com.immortalcockroach.hbaseorm.entity.query;
 
+import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.param.enums.LogicalOperatorEnum;
 
 import java.io.Serializable;
@@ -59,5 +60,16 @@ public class Condition implements Serializable {
         }
         return queryType;
     }
+
+    public Expression getRowKeyExp() {
+
+        for (Expression expression : expressions) {
+            if (expression.getColumn().equals(CommonConstants.ROW_KEY)) {
+                return expression;
+            }
+        }
+        return null;
+    }
+
 
 }

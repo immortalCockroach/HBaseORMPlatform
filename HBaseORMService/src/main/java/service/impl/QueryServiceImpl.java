@@ -1,11 +1,10 @@
 package service.impl;
 
-import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.api.QueryService;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
+import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.QueryParam;
 import com.immortalcockroach.hbaseorm.result.ListResult;
-import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.apache.hadoop.hbase.filter.Filter;
@@ -31,10 +30,8 @@ import javax.annotation.Resource;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -76,7 +73,14 @@ public class QueryServiceImpl implements QueryService {
         // 直接全表扫描
         if (!IndexUtils.hitAnyIdex(hitIndexNums)) {
             Filter filter = FilterUtils.buildFilterListWithCondition(queryParam.getCondition(), descriptor);
-            return scanner.scan(tableName, qualifiers.toArray(new String[]{}), filter);
+            Expression rokweyExpression = queryParam.getCondition().getRowKeyExp();
+            if (rokweyExpression == null) {
+                return scanner.scan(tableName, qualifiers.toArray(new String[]{}), filter);
+            } else {
+                return scanner.scan(tableName, rokweyExpression.getValue(), rokweyExpression.getOptionValue(),
+                        qualifiers.toArray(new String[]{}), filter);
+            }
+
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex, queryParam.getCondition().getExpressions(), hitIndexNums);
             // size代表该表的索引数量
@@ -126,8 +130,9 @@ public class QueryServiceImpl implements QueryService {
                 // 构造回表查询的列，然后回表查询
                 String[] backTableQualifiers = InternalResultUtils.buildQualifiersForBackTable(unhitColumns, leftColumns);
 
-                Iterator<Map.Entry<ByteBuffer, IndexLine>> iterator = mergedMap.entrySet().iterator();
-                while (iterator.hasNext()) {
+                byte[][] rowkeys = ByteArrayUtils.getRowkeys(mergedMap.keySet());
+                ListResult backTableRes = getter.readSepratorLines(tableName, rowkeys, backTableQualifiers);
+/*                while (iterator.hasNext()) {
                     Map.Entry<ByteBuffer, IndexLine> entry = iterator.next();
                     // 如果不在合并的结果里，则remove
                     ByteBuffer rowkey = entry.getKey();
@@ -146,8 +151,9 @@ public class QueryServiceImpl implements QueryService {
                         IndexLine oldLine = entry.getValue();
                         oldLine.mergeLine(line);
                     }
-                }
-                return InternalResultUtils.buildResult(mergedMap, qualifiers.contains(CommonConstants.ROW_KEY));
+                }*/
+                return InternalResultUtils.buildResult(mergedMap, qualifiers.contains(CommonConstants.ROW_KEY),
+                        backTableRes, filter, false);
             }
         }
     }

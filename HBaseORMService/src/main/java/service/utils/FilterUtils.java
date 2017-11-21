@@ -1,5 +1,6 @@
 package service.utils;
 
+import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.entity.query.Condition;
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
@@ -25,6 +26,10 @@ public class FilterUtils {
         List<Filter> filters = new ArrayList<>();
         List<Expression> expressions = condition.getExpressions();
         for (Expression expression : expressions) {
+            // 行健不构建filter
+            if (expression.getColumn().equals(CommonConstants.ROW_KEY)) {
+                continue;
+            }
             List<Filter> columnFilters = getSingleColumnFilters(expression, descriptor);
             for (Filter filter : columnFilters) {
                 filters.add(filter);

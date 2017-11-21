@@ -1,7 +1,9 @@
 package service.hbasemanager.read;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
+import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.apache.hadoop.hbase.Cell;
@@ -18,6 +20,7 @@ import service.constants.ServiceConstants;
 import service.hbasemanager.connection.HBaseConnectionPool;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -73,5 +76,50 @@ public class TableGetService {
         }
 
         return ResultUtil.getSuccessPlainResult(result);
+    }
+
+    public ListResult readSepratorLines(byte[] tableName, byte[][] rowKeys, String[] columnQualifiers) {
+
+        Connection connection = HBaseConnectionPool.getConnection();
+
+        byte[] family = ServiceConstants.BYTES_COLUMN_FAMILY;
+        JSONArray result = new JSONArray();
+        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+            int size = rowKeys.length;
+            List<Get> gets = new ArrayList<>(size);
+            for (byte[] rowkey : rowKeys) {
+                Get g = new Get(rowkey);
+                for (String s : columnQualifiers) {
+                    g.addColumn(family, Bytes.toBytes(s));
+                }
+
+            }
+
+            // 此处直接listCells,null的话表示rowkey不存在或者查找的family:qualifer没有值，或者qualifier不存在
+            Result[] res = table.get(gets);
+            for (Result r : res) {
+                JSONObject line = new JSONObject();
+                List<Cell> list = r.listCells();
+
+                // null表示查询的qualifers都是null
+                if (list != null) {
+                    for (Cell c : list) {
+                        line.put(Bytes.toString(CellUtil.cloneQualifier(c)), CellUtil.cloneValue(c));
+                    }
+                    for (String q : columnQualifiers) {
+                        if (!line.containsKey(q)) {
+                            line.put(q, null);
+                        }
+                    }
+                    line.put(CommonConstants.ROW_KEY, r.getRow());
+                }
+            }
+
+        } catch (IOException e) {
+            logger.warn(e.getMessage(), e);
+            ResultUtil.getFailedPlainResult("读取失败");
+        }
+
+        return ResultUtil.getSuccessListResult(result);
     }
 }
