@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class Index {
     // 构成这个索引的列信息，和索引构建时列的顺序相同
-    private List<String> indexColumnList;
+    private String[] indexColumnList;
     // 索引在表中的序号
     private int indexNum;
 
@@ -21,14 +21,14 @@ public class Index {
     public Index(String indexString, int indexNum) {
         this.indexString = indexString;
         this.indexNum = indexNum;
-        this.indexColumnList = Arrays.asList(indexString.split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR));
+        this.indexColumnList = indexString.split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
     }
 
-    public List<String> getIndexColumnList() {
+    public String[] getIndexColumnList() {
         return indexColumnList;
     }
 
-    public void setIndexColumnList(List<String> indexColumnList) {
+    public void setIndexColumnList(String[] indexColumnList) {
         this.indexColumnList = indexColumnList;
     }
 

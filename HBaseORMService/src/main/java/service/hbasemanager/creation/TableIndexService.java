@@ -143,7 +143,7 @@ public class TableIndexService {
         List<Map<String, byte[]>> valuesList = new ArrayList<>(hitIndexes.size() * valuesMap.size());
         for (Index hitIndex : hitIndexes) {
             // 根据每个索引的信息更新索引表
-            String[] qualifiers = hitIndex.getIndexColumnList().toArray(new String[]{});
+            String[] qualifiers = hitIndex.getIndexColumnList();
 
             for (Map<String, byte[]> row : valuesMap) {
                 // 将每一行的数据按照当前索引qualifiers进行拼接

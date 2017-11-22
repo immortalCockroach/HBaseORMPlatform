@@ -18,7 +18,7 @@ public class IndexScanResult {
     // 查询结果中根据qualifiers筛出需要保留的列
     private Set<String> filterColumn;
 
-    public IndexScanResult(List<String> indexColumns, Set<String> qualifiers) {
+    public IndexScanResult(String[] indexColumns, Set<String> qualifiers) {
         rowkeys = new HashSet<>();
         lineMap = new HashMap<>();
         filterColumn = new HashSet<>();

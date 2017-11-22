@@ -44,9 +44,9 @@ public class QueryInfoWithIndexes {
             if (hitNum[i] == 0) {
                 continue;
             }
-            List<String> indexColumns = indexColumnList.get(i).getIndexColumnList();
-            for (int j = 0; i <= hitNum[i] - 1; j++) {
-                allColumns.add(indexColumns.get(j));
+            String[] indexColumns = indexColumnList.get(i).getIndexColumnList();
+            for (int j = 0; j <= hitNum[j] - 1; j++) {
+                allColumns.add(indexColumns[j]);
             }
         }
         // 如果查询条件未命中，则加入unHitColumns，等待回表查询
@@ -79,9 +79,10 @@ public class QueryInfoWithIndexes {
         Index index = indexColumnList.get(i);
         Map<String, byte[]> linePrefix = new HashMap<>();
         List<String> qualifiers = new ArrayList<>();
+        String[] indexColumns = index.getIndexColumnList();
         int j;
         for (j = 0; j <= hitNum - 1; j++) {
-            String column = index.getIndexColumnList().get(j);
+            String column = indexColumns[j];
             Expression expression = expressionMap.get(column);
             // 索引只能用到第一个非等值查询为止
             if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
@@ -98,7 +99,7 @@ public class QueryInfoWithIndexes {
                     String[]{}), (byte) index.getIndexNum(), true));
         } else {
             // 第j个不是等值查询
-            String column = index.getIndexColumnList().get(j);
+            String column = indexColumns[j];
             return new TableScanParam(linePrefix, qualifiers, expressionMap.get(column), indexNum, descriptor);
         }
     }
@@ -111,11 +112,10 @@ public class QueryInfoWithIndexes {
      * @return
      */
     public int getPrefixCount(int i, int hitNum) {
-        Index index = indexColumnList.get(i);
-
+        String[] indexColumns = indexColumnList.get(i).getIndexColumnList();
         int count = 0;
         for (int j = 0; j <= hitNum - 1; j++) {
-            Expression expression = expressionMap.get(index.getIndexColumnList().get(j));
+            Expression expression = expressionMap.get(indexColumns[j]);
             // 索引只能用到最后一个等值查询为止
             if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
                 count++;

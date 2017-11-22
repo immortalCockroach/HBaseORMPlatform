@@ -44,12 +44,12 @@ public class IndexUtils {
         }
 
         for (Index existedIndex : existedIndexes) {
-            List<String> indexColumns = existedIndex.getIndexColumnList();
+            String[] indexColumns = existedIndex.getIndexColumnList();
 
             int hitNum = 0;
 
-            for (int i = 0; i <= indexColumns.size() - 1; i++) {
-                if (operColumns.contains(indexColumns.get(i))) {
+            for (int i = 0; i <= indexColumns.length - 1; i++) {
+                if (operColumns.contains(indexColumns[i])) {
                     hitNum++;
                     break;
                 }
@@ -85,22 +85,22 @@ public class IndexUtils {
 
         // 记录每个字符串的匹配次数
         Map<String, Integer> columnCountMap = new HashMap<>();
-        List<List<String>> indexes = new ArrayList<>();
+        List<String[]> indexes = new ArrayList<>();
         for (Index index : existedIndex) {
             indexes.add(index.getIndexColumnList());
         }
         int idx = 0;
-        for (List<String> index : indexes) {
+        for (String[] index : indexes) {
             int hitCount = 0;
             // 计算每个index最多被queryColumns匹配的数量，保存到res中
-            int size = index.size();
+            int size = index.length;
             for (int i = 0; i <= size - 1; i++) {
-                String column = index.get(i);
+                String column = index[i];
                 if (querySet.contains(column)) {
                     // 如果该查询不是!=且(是等值查询，或者前面一个是等值查询)，则加入;否则说明该索引列不可命中，直接break;
                     Integer queryType = queryTypeMap.get(column);
                     if (!ArithmeticOperatorEnum.isNotEqualQuery(queryType) && (ArithmeticOperatorEnum.isEqualQuery(queryType)
-                            || (i == 0 || ArithmeticOperatorEnum.isEqualQuery(queryTypeMap.get(index.get(i - 1)))))) {
+                            || (i == 0 || ArithmeticOperatorEnum.isEqualQuery(queryTypeMap.get(index[i - 1]))))) {
                         Integer c = columnCountMap.get(column);
                         if (c == null) {
                             c = 0;
@@ -139,7 +139,8 @@ public class IndexUtils {
      * @param columnCountMap
      * @return
      */
-    private static void dfs(int level, int[] res, int[] tmp, List<List<String>> existedIndex, Map<String, Integer> columnCountMap) {
+    private static void dfs(int level, int[] res, int[] tmp, List<String[]> existedIndex, Map<String, Integer>
+            columnCountMap) {
         // 遍历完毕则验证结果
         if (level == tmp.length) {
             if (validate(columnCountMap)) {
@@ -154,13 +155,13 @@ public class IndexUtils {
         } else {
             // 获得该index命中的size，并依次前向递减并dfs
             int hitSize = tmp[level];
-            List<String> indexes = existedIndex.get(level);
+            String[] indexes = existedIndex.get(level);
 
             // 移除0~hitSize个元素进行dfs
             for (int i = hitSize; i >= 0; i--) {
                 // i == hitSize的情况下为不移除任何列进行dfs
                 if (i < hitSize) {
-                    String removedColumn = indexes.get(i);
+                    String removedColumn = indexes[i];
                     tmp[level]--;
                     Integer columnCount = columnCountMap.get(removedColumn);
                     columnCountMap.put(removedColumn, columnCount - 1);
@@ -171,7 +172,7 @@ public class IndexUtils {
             // 恢复原先的结果
             tmp[level] = hitSize;
             for (int i = 0; i <= hitSize - 1; i++) {
-                String removedColumn = indexes.get(i);
+                String removedColumn = indexes[i];
                 Integer columnCount = columnCountMap.get(removedColumn);
                 if (columnCount == null) {
                     columnCount = 0;
@@ -241,7 +242,7 @@ public class IndexUtils {
             // 针对每一行，构建所有索引的索引表行健
             JSONObject row = array.getJSONObject(i);
             for (Index index : indexes) {
-                String[] qualifiers = index.getIndexColumnList().toArray(new String[]{});
+                String[] qualifiers = index.getIndexColumnList();
                 rowkeys.add(ByteArrayUtils.generateIndexRowKey(row, qualifiers, (byte) index.getIndexNum()));
 
             }

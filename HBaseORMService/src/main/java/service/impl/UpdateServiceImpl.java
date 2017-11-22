@@ -4,10 +4,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.api.UpdateService;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
+import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.UpdateParam;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.result.ListResult;
-import com.immortalcockroach.hbaseorm.result.PlainResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.apache.hadoop.hbase.filter.Filter;
@@ -38,11 +38,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class UpdateServiceImpl implements UpdateService {
     @Resource
@@ -82,10 +80,16 @@ public class UpdateServiceImpl implements UpdateService {
         // 获得每个索引的命中信息
         int[] hitIndexNums = IndexUtils.getHitIndexWhenQuery(existedIndex, updateParam.getConditionColumnsType());
         // 直接全表扫描
+        ListResult updateRows;
         if (!IndexUtils.hitAnyIdex(hitIndexNums)) {
             Filter filter = FilterUtils.buildFilterListWithCondition(updateParam.getCondition(), descriptor);
-            ListResult tmp = scanner.scan(tableName, new String[]{CommonConstants.ROW_KEY}, filter);
-            return inserter.insertBatch(tableName, buildDataTablePuts(tmp, updateParam.getUpdateValues()));
+            Expression rokweyExpression = updateParam.getCondition().getRowKeyExp();
+            if (rokweyExpression == null) {
+                updateRows = scanner.scan(tableName, new String[]{}, filter);
+            } else {
+                updateRows = scanner.scan(tableName, rokweyExpression.getValue(), rokweyExpression.getOptionValue(),
+                        new String[]{}, filter);
+            }
         } else {
             QueryInfoWithIndexes queryInfoWithIndexes = new QueryInfoWithIndexes(existedIndex,
                     updateParam.getCondition().getExpressions(), hitIndexNums);
@@ -126,43 +130,15 @@ public class UpdateServiceImpl implements UpdateService {
                     return ResultUtil.getSuccessBaseResult();
                 }
             }
-            // 未被索引命中的查询条件
-            Set<String> unhitColumns = queryInfoWithIndexes.getUnhitColumns();
+            LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
+            byte[][] rowkeys = ByteArrayUtils.getRowkeys(mergedMap.keySet());
 
-            // 说明不需要回表查询
-            ListResult updatedRows;
-            if (unhitColumns.size() == 0) {
-                updatedRows = InternalResultUtils.buildResult(mergedResult.getMergedLineMap(), true);
-            } else {
-                LinkedHashMap<ByteBuffer, IndexLine> mergedMap = mergedResult.getMergedLineMap();
-                // 构造回表查询的列，然后回表查询
-                String[] backTableQualifiers = InternalResultUtils.buildQualifiersForBackTable(unhitColumns, new HashSet<String>());
+            ListResult backTableRes = getter.readSeparatorLines(tableName, rowkeys, new String[]{});
+            // 获得完整的需要删除的行
+            updateRows = InternalResultUtils.buildResult(mergedMap, backTableRes, filter, false);
+        }
 
-                Iterator<Map.Entry<ByteBuffer, IndexLine>> iterator = mergedMap.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<ByteBuffer, IndexLine> entry = iterator.next();
-                    // 如果不在合并的结果里，则remove
-                    ByteBuffer rowkey = entry.getKey();
-                    // 此处update时需要读取所有的列，用于构建后续的删除行键与更新行键
-                    PlainResult backTableLine = getter.read(tableName, rowkey.array(), new String[]{});
-                    if (!backTableLine.getSuccess() || backTableLine.getSize() == 0) {
-                        iterator.remove();
-                        continue;
-                    }
-                    // 验证回表查询的结果，然后和当前的line合并
-                    JSONObject line = backTableLine.getData();
-                    // 此处不移除列，后面要建立索引表的更新与删除的行键
-                    if (!filter.check(line, false)) {
-                        iterator.remove();
-                        continue;
-                    }
-
-
-                }
-                // 将最后符合的行构建出完整的数据表的行
-                updatedRows = InternalResultUtils.buildResult(mergedMap, true);
-            }
-
+        if (updateRows.getSize() > 0) {
             Map<String, byte[]> updateValues = updateParam.getUpdateValues();
 
             String[] updateQualifiers = updateValues.keySet().toArray(new String[]{});
@@ -171,16 +147,16 @@ public class UpdateServiceImpl implements UpdateService {
             List<Index> hitIndexes = tableIndexService.getHitIndexesWhenUpdate(tableName, updateQualifiers);
             if (hitIndexes.size() > 0) {
                 byte[] indexTable = ByteArrayUtils.getIndexTableName(tableName);
-                deleter.deleteBatch(indexTable, IndexUtils.buildIndexTableRowKey(updatedRows, hitIndexes));
-                inserter.insertBatch(indexTable, buildIndexTablePuts(updatedRows, updateValues, hitIndexes));
-
+                deleter.deleteBatch(indexTable, IndexUtils.buildIndexTableRowKey(updateRows, hitIndexes));
+                inserter.insertBatch(indexTable, buildIndexTablePuts(updateRows, updateValues, hitIndexes));
             }
-
             // 3. 更新表数据
-            List<Map<String, byte[]>> newPuts = buildDataTablePuts(updatedRows, updateValues);
+            List<Map<String, byte[]>> newPuts = buildDataTablePuts(updateRows, updateValues);
             inserter.insertBatch(tableName, newPuts);
-            return ResultUtil.getSuccessBaseResult();
         }
+
+        return ResultUtil.getSuccessBaseResult();
+
 
     }
 
@@ -207,7 +183,7 @@ public class UpdateServiceImpl implements UpdateService {
             // 针对每一行，构建所有索引的索引表行健
             JSONObject row = array.getJSONObject(i);
             for (Index index : hitIndexes) {
-                String[] qualifiers = index.getIndexColumnList().toArray(new String[]{});
+                String[] qualifiers = index.getIndexColumnList();
                 // 根据更新的值更新原始的行
                 for (Map.Entry<String, byte[]> entry : updatedValues.entrySet()) {
                     row.put(entry.getKey(), entry.getValue());
