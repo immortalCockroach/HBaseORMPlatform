@@ -32,8 +32,7 @@ public class GlobalTableDescInfoHolder {
      * Spring加载该类时维护所有数据表的表结构信息
      */
     public void init() {
-        ListResult result = scanner.scan(ServiceConstants.GLOBAL_DESC_TABLE_BYTES, new String[]{ServiceConstants
-                .GLOBAL_DESC_TABLE_COL});
+        ListResult result = scanner.scan(ServiceConstants.GLOBAL_DESC_TABLE_BYTES, new String[]{ServiceConstants.GLOBAL_DESC_TABLE_COL});
         if (!result.getSuccess()) {
             return;
         }
@@ -45,8 +44,7 @@ public class GlobalTableDescInfoHolder {
             // global_desc表的结构为tableName -
             JSONObject row = rows.getJSONObject(i);
             byte[] rowkey = row.getBytes(CommonConstants.ROW_KEY);
-            String[] columns = Bytes.toString(row.getBytes
-                    (ServiceConstants.GLOBAL_DESC_TABLE_COL)).split(ServiceConstants.GLOBAL_DESC_TABLE_SEPARATOR);
+            String[] columns = Bytes.toString(row.getBytes(ServiceConstants.GLOBAL_DESC_TABLE_COL)).split(ServiceConstants.GLOBAL_DESC_TABLE_SEPARATOR);
 
             globalTableDescMap.put(Bytes.toString(rowkey), new TableDescriptor(columns));
         }

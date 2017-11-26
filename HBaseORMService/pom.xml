@@ -68,10 +68,16 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.101tec/zkclient -->
-        <dependency>
+<!--        <dependency>
             <groupId>com.101tec</groupId>
             <artifactId>zkclient</artifactId>
             <version>0.6</version>
+        </dependency>-->
+
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
         </dependency>
 
         <dependency>
@@ -231,11 +237,7 @@
             <artifactId>HBaseORMAPI</artifactId>
             <version>1.0</version>
         </dependency>
-        <dependency>
-            <groupId>immortalCockroach</groupId>
-            <artifactId>HBaseORMAPI</artifactId>
-            <version>1.0</version>
-        </dependency>
+
     </dependencies>
 
     <build>

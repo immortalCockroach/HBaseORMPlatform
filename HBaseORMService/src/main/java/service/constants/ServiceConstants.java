@@ -18,7 +18,7 @@ public class ServiceConstants {
 
     // 用于维护表中的索引列
     public static final String GLOBAL_INDEX_TABLE = "global_idx";
-    public static final byte[] GLOBAL_INDEX_TABLE_BYTES = Bytes.toBytes("global_idx");
+    public static final byte[] GLOBAL_INDEX_TABLE_BYTES = Bytes.toBytes("global:global_idx");
 
     // 索引表的列信息，用于维护该表中的索引信息
     public static final String GLOBAL_INDEX_TABLE_COL = "idxs";
@@ -29,7 +29,7 @@ public class ServiceConstants {
 
     // 用于维护表中的列信息
     public static final String GLOBAL_DESC_TABLE = "global_desc";
-    public static final byte[] GLOBAL_DESC_TABLE_BYTES = Bytes.toBytes("global_desc");
+    public static final byte[] GLOBAL_DESC_TABLE_BYTES = Bytes.toBytes("global:global_desc");
 
     // desc表的列信息，用于维护该表中的列信息
     public static final String GLOBAL_DESC_TABLE_COL = "descs";

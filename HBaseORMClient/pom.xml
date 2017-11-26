@@ -13,6 +13,14 @@
     <artifactId>HBaseORMClient</artifactId>
     <packaging>war</packaging>
 
+
+    <properties>
+        <hbase.version>1.0.1</hbase.version>
+        <hadoop.version>2.6.0</hadoop.version>
+        <zookeeper.version>3.4.6</zookeeper.version>
+    </properties>
+
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -63,10 +71,15 @@
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.101tec/zkclient -->
-        <dependency>
+        <!--<dependency>
             <groupId>com.101tec</groupId>
             <artifactId>zkclient</artifactId>
             <version>0.6</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+            <version>${zookeeper.version}</version>
         </dependency>
 
         <dependency>

@@ -56,29 +56,6 @@ public class TestDubbo {
         return null;
     }
 
- /*   @RequestMapping(value = "/testCreateUUID", method = RequestMethod.GET)
-    @ResponseBody
-    public String testCreateUUID() {
-        CreateTableParam.CreateTableParamBuilder builder = new CreateTableParam.CreateTableParamBuilder(Bytes.toBytes("testCreateUUID"));
-        builder.splitAlgorithm(CommonConstants.UUID);
-        CreateTableParam param = builder.build();
-        BaseResult result = createService.createTable(param);
-        return JSON.toJSONString(result);
-    }
-
-    @RequestMapping(value = "/testCreateAuto", method = RequestMethod.GET)
-    @ResponseBody
-    public String testCreateAuto() {
-        CreateTableParam.CreateTableParamBuilder builder = new CreateTableParam.CreateTableParamBuilder(Bytes.toBytes("testCreateAuto"));
-        builder.splitAlgorithm(CommonConstants.AUTO_INCREMENT);
-        builder.lowerBound(1);
-        builder.upperBound(1000);
-        builder.splitNum(3);
-        CreateTableParam param = builder.build();
-        BaseResult result = createService.createTable(param);
-        return JSON.toJSONString(result);
-    }*/
-
     @RequestMapping(value = "/testInsert", method = RequestMethod.GET)
     @ResponseBody
     public String testInsert() {
