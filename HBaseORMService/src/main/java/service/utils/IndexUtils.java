@@ -71,8 +71,8 @@ public class IndexUtils {
      * @return
      */
     public static int[] getHitIndexWhenQuery(List<Index> existedIndex, Map<String, Integer> queryTypeMap) {
-        int indexCount = existedIndex.size();
-        if (existedIndex == null || existedIndex.size() == 0 || queryTypeMap == null || queryTypeMap.size() == 0) {
+        int indexCount = 0;
+        if (existedIndex == null || (indexCount = existedIndex.size()) == 0 || queryTypeMap == null || queryTypeMap.size() == 0) {
             return new int[indexCount];
         }
         // 保存每个index最多被匹配的列数

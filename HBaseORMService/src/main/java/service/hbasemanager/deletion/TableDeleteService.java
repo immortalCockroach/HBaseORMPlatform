@@ -3,6 +3,7 @@ package service.hbasemanager.deletion;
 import com.immortalcockroach.hbaseorm.result.BaseResult;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.BufferedMutator;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Table;
@@ -26,23 +27,23 @@ public class TableDeleteService {
 
         Connection connection = HBaseConnectionPool.getConnection();
 
-        try (Table table = connection.getTable(TableName.valueOf(tableName))) {
+        try (BufferedMutator table = connection.getBufferedMutator(TableName.valueOf(tableName))) {
 
             int size = rowkeyList.size();
             int index = 0;
 
             while (size >= ServiceConstants.THRESHOLD) {
                 List<Delete> deletes = getDeleteFromRowkeyList(rowkeyList, index, index + ServiceConstants.THRESHOLD - 1);
-                table.delete(deletes);
+                table.mutate(deletes);
                 index += ServiceConstants.THRESHOLD;
                 size -= ServiceConstants.THRESHOLD;
             }
             // 将末尾部分put
             if (size > 0) {
                 List<Delete> deletes = getDeleteFromRowkeyList(rowkeyList, index, index + size - 1);
-                table.delete(deletes);
+                table.mutate(deletes);
             }
-
+            table.flush();
 
         } catch (IOException e) {
             logger.warn(e.getMessage(), e);

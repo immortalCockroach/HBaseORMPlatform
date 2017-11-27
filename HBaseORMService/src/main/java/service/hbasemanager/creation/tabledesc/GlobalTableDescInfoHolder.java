@@ -8,6 +8,7 @@ import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Service;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.tabldesc.TableDescriptor;
 import service.hbasemanager.read.TableScanService;

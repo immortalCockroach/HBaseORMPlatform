@@ -68,11 +68,11 @@ public class TableIndexService {
 
         // 没有数据则在global_idx表中创建对应的信息即可
         if (size == 0) {
-            this.updateGlobalIndexTable(indexTableName, qualifiers);
+            this.updateGlobalIndexTable(tableName, qualifiers);
             return ResultUtil.getSuccessBaseResult();
         } else {
             // 更新内存map的数据
-            this.updateGlobalIndexTable(indexTableName, qualifiers);
+            this.updateGlobalIndexTable(tableName, qualifiers);
             JSONArray rows = res.getData();
             List<Map<String, byte[]>> valuesList = new ArrayList<>(size);
             // 将数据转换为对应的形式然后put到index表中
@@ -98,17 +98,17 @@ public class TableIndexService {
     /**
      * 新建索引时更新对应的全局索引表global_idx以及内存的map
      *
-     * @param indexTableName
+     * @param tableName
      * @param qualifiers
      */
-    private void updateGlobalIndexTable(byte[] indexTableName, String[] qualifiers) {
-        PlainResult result = getter.read(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, indexTableName, new String[]{ServiceConstants.GLOBAL_INDEX_TABLE_COL});
+    private void updateGlobalIndexTable(byte[] tableName, String[] qualifiers) {
+        PlainResult result = getter.read(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, tableName, new String[]{ServiceConstants.GLOBAL_INDEX_TABLE_COL});
         // 该表的第一个index
         if (result.getSize() == 0) {
             String combinedIndex = IndexUtils.getCombinedIndex(qualifiers);
 
             Map<String, byte[]> lineMap = new HashMap<>();
-            lineMap.put(CommonConstants.ROW_KEY, indexTableName);
+            lineMap.put(CommonConstants.ROW_KEY, tableName);
             lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes(combinedIndex));
             inserter.insert(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, lineMap);
         } else {
@@ -120,11 +120,11 @@ public class TableIndexService {
             String newIndex = originIndex + ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_SEPARATOR + combinedIndex;
 
             Map<String, byte[]> lineMap = new HashMap<>();
-            lineMap.put(CommonConstants.ROW_KEY, indexTableName);
+            lineMap.put(CommonConstants.ROW_KEY, tableName);
             lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes(newIndex));
             inserter.insert(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, lineMap);
         }
-        indexInfoHolder.updateGlobalMap(indexTableName, qualifiers);
+        indexInfoHolder.updateGlobalMap(tableName, qualifiers);
     }
 
     /**

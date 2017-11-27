@@ -9,6 +9,7 @@ import service.hbasemanager.creation.TableIndexService;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.utils.HBaseTableUtils;
+import service.utils.ByteArrayUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -37,15 +38,13 @@ public class InsertServiceImpl implements InsertService {
         if (!HBaseTableUtils.tableExists(tableName)) {
             return ResultUtil.getFailedBaseResult("表" + Bytes.toString(tableName) + "不存在");
         }
-        BaseResult res = tableInsertService.insertBatch(insertParam.getTableName(),
-                insertParam.getValuesMap());
+        BaseResult res = tableInsertService.insertBatch(insertParam.getTableName(), insertParam.getValuesMap());
 
         if (!res.getSuccess()) {
             return ResultUtil.getFailedBaseResult("插入数据错误，请稍后重试");
         }
         // 获得命中的索引
-        List<Index> hitIndexes = tableIndexService.getHitIndexesWhenInsertOrDelete(tableName, insertParam
-                .getQualifiers());
+        List<Index> hitIndexes = tableIndexService.getHitIndexesWhenInsertOrDelete(tableName, insertParam.getQualifiers());
         // 代表有索引命中了
         if (hitIndexes != null && hitIndexes.size() > 0) {
             // 更新命中的索引

@@ -50,7 +50,7 @@ public class GlobalIndexInfoHolder {
                         (ServiceConstants.GLOBAL_INDEX_TABLE_COL)).split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_SEPARATOR);
 
                 List<Index> indexes = new ArrayList<>(indexesColumns.length);
-                for (int j = 0; j <= indexesColumns.length; j++) {
+                for (int j = 0; j <= indexesColumns.length - 1; j++) {
                     indexes.add(new Index(indexesColumns[j], j));
                 }
 
@@ -68,7 +68,7 @@ public class GlobalIndexInfoHolder {
     public int indexExists(byte[] tableName, String[] qualifiers) {
         String index = IndexUtils.getCombinedIndex(qualifiers);
         List<Index> indexes = globalIndexMap.get(Bytes.toString(tableName));
-        if (indexes == null) {
+        if (indexes == null || indexes.size() == 0) {
             return 0;
         }
 

@@ -173,9 +173,9 @@ public class ByteArrayUtils {
         // 总长度为qualifies.length * 2  + 2对应 length * 2个col + colv 以及1个rowkey、1个indexNum的值
         byte[][] res = new byte[size * 2 + 2][];
         res[0] = new byte[]{indexNum};
-        for (int i = 1; i <= 2 * size; i += 2) {
-            res[i] = Bytes.toBytes(qualifiers[i]);
-            res[i + 1] = line.getBytes(qualifiers[i]);
+        for (int i = 0; i <= size - 1; i ++) {
+            res[2 * i + 1] = Bytes.toBytes(qualifiers[i]);
+            res[2 * i + 2] = line.getBytes(qualifiers[i]);
         }
         // 最后一个为rowkey的值
         res[2 * size + 1] = line.getBytes(CommonConstants.ROW_KEY);
@@ -196,9 +196,9 @@ public class ByteArrayUtils {
         // 总长度为qualifies.length * 2  + 2对应 length * 2个col + colv 以及1个rowkey、1个indexNum的值
         byte[][] res = new byte[size * 2 + 2][];
         res[0] = new byte[]{indexNum};
-        for (int i = 1; i <= 2 * size; i += 2) {
-            res[i] = Bytes.toBytes(qualifiers[i]);
-            res[i + 1] = line.get(qualifiers[i]);
+        for (int i = 0; i <= size - 1;i++) {
+            res[2 * i + 1] = Bytes.toBytes(qualifiers[i]);
+            res[2 * i + 2] = line.get(qualifiers[i]);
         }
         // 最后一个为rowkey的值
         res[2 * size + 1] = line.get(CommonConstants.ROW_KEY);

@@ -39,8 +39,8 @@ public class ServiceConstants {
     // global_desc索引之间的分割符
     public static final String GLOBAL_DESC_TABLE_SEPARATOR = ";";
 
-    // 每次以1000作为插入的行数
-    public static final Integer THRESHOLD = 1000;
+    // 每次以5000作为插入或者删除的行数
+    public static final Integer THRESHOLD = 5000;
 
 
     public static final String QUALIFIER = "qualifiers";
