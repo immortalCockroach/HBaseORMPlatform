@@ -33,6 +33,7 @@ public class GlobalIndexInfoHolder {
      * Spring注入后使用该方法加载数据表的索引信息
      */
     public void init() {
+        globalIndexMap = new ConcurrentHashMap<>();
         if (ServiceConstants.USE_INDEX) {
             ListResult result = scanner.scan(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, new String[]{ServiceConstants.GLOBAL_INDEX_TABLE_COL});
             if (!result.getSuccess()) {
@@ -41,7 +42,6 @@ public class GlobalIndexInfoHolder {
 
             JSONArray rows = result.getData();
             int size = result.getSize();
-            globalIndexMap = new ConcurrentHashMap<>();
             for (int i = 0; i <= size - 1; i++) {
                 // global_idx表的结构为tableName - index
                 JSONObject row = rows.getJSONObject(i);

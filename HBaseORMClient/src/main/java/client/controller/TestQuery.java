@@ -68,11 +68,9 @@ public class TestQuery {
         return JSON.toJSONString(result);
     }
 
-    @RequestMapping(value = "/testCreateIndex", method = RequestMethod.GET)
-    @ResponseBody
-    public String testCreateIndex(@RequestParam("indexCount") Integer indexCount) {
+    public void testCreateIndex(Integer indexCount) {
         if (indexCount == null || indexCount == 0) {
-            return "ok";
+            return;
         }
         String[] indexes = getIndexByCount(indexCount);
         if (indexes.length == 2) {
@@ -89,7 +87,7 @@ public class TestQuery {
                 BaseResult result = createService.createIndex(param);
             }
         }
-        return "ok";
+
 
     }
 
@@ -115,11 +113,9 @@ public class TestQuery {
     public String testCorrectEQ(@RequestParam("col1") Integer col1) {
         QueryParam.QueryParamBuilder builder = new QueryParam.QueryParamBuilder(
                 Bytes.toBytes("testCreateAuto"));
-        builder.qulifiers(new String[]{"col1", "col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col1 + ""))));
+        builder.qulifiers(new String[]{"col1","col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col1 + ""))));
         QueryParam param = builder.build();
-        long start = System.currentTimeMillis();
         ListResult result = queryService.query(param);
-        long end = System.currentTimeMillis();
         JSONArray array = result.getData();
         for (int i = 0; i <= array.size() - 1; i++) {
             JSONObject o = array.getJSONObject(i);
@@ -127,19 +123,18 @@ public class TestQuery {
                 o.put(entry.getKey(), Bytes.toString((byte[]) entry.getValue()));
             }
         }
-        return JSON.toJSONString(result) + "\n" + (end - start);
+        return JSON.toJSONString(result);
     }
 
-    @RequestMapping(value = "/testGE", method = RequestMethod.GET)
+    @RequestMapping(value = "/testGE", method =
+            RequestMethod.GET)
     @ResponseBody
     public String testCorrectGE(@RequestParam("col1") String col1) {
         QueryParam.QueryParamBuilder builder = new QueryParam.QueryParamBuilder(
                 Bytes.toBytes("testCreateAuto"));
-        builder.qulifiers(new String[]{"col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.GE.getId(), Bytes.toBytes(col1))));
+        builder.qulifiers(new String[]{"col1","col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.GE.getId(), Bytes.toBytes(col1))));
         QueryParam param = builder.build();
-        long start = System.currentTimeMillis();
         ListResult result = queryService.query(param);
-        long end = System.currentTimeMillis();
         JSONArray array = result.getData();
         for (int i = 0; i <= array.size() - 1; i++) {
             JSONObject o = array.getJSONObject(i);
@@ -147,15 +142,16 @@ public class TestQuery {
                 o.put(entry.getKey(), Bytes.toString((byte[]) entry.getValue()));
             }
         }
-        return JSON.toJSONString(result) + "\n" + (end - start);
+        return JSON.toJSONString(result);
     }
 
-    @RequestMapping(value = "/testLE", method = RequestMethod.GET)
+    @RequestMapping(value = "/testLE", method =
+            RequestMethod.GET)
     @ResponseBody
     public String testCorrectLE(@RequestParam("col1") String col1) {
         QueryParam.QueryParamBuilder builder = new QueryParam.QueryParamBuilder(
                 Bytes.toBytes("testCreateAuto"));
-        builder.qulifiers(new String[]{"col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.LE.getId(), Bytes.toBytes(col1))));
+        builder.qulifiers(new String[]{"col1","col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.LE.getId(), Bytes.toBytes(col1))));
         QueryParam param = builder.build();
         ListResult result = queryService.query(param);
         JSONArray array = result.getData();
@@ -175,19 +171,16 @@ public class TestQuery {
                 Bytes.toBytes("testCreateAuto"));
         Condition condition = new Condition(new Expression("col1", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col1)));
         condition.add(new Expression("col2", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col2)));
-        builder.qulifiers(new String[]{"col1", "col2", "col3"}).condition(condition);
+        builder.qulifiers(new String[]{"col1","col2", "col3"}).condition(condition);
         QueryParam param = builder.build();
-        long start = System.currentTimeMillis();
         ListResult result = queryService.query(param);
-        long end = System.currentTimeMillis();
         JSONArray array = result.getData();
-
         for (int i = 0; i <= array.size() - 1; i++) {
             JSONObject o = array.getJSONObject(i);
             for (Map.Entry<String, Object> entry : o.entrySet()) {
                 o.put(entry.getKey(), Bytes.toString((byte[]) entry.getValue()));
             }
         }
-        return JSON.toJSONString(result) + "\n" + (end - start);
+        return JSON.toJSONString(result);
     }
 }

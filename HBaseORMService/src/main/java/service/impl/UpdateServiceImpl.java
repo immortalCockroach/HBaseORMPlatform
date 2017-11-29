@@ -142,17 +142,20 @@ public class UpdateServiceImpl implements UpdateService {
             Map<String, byte[]> updateValues = updateParam.getUpdateValues();
 
             String[] updateQualifiers = updateValues.keySet().toArray(new String[]{});
-            // 1. 根据更新的列筛选出命中的索引，删除索引
-            // 2. 更新索引表数据
+
+            // 1. 更新表数据
+            // 2. 根据更新的列筛选出命中的索引，删除索引
+            // 3. 更新索引表数据
+            List<Map<String, byte[]>> newPuts = buildDataTablePuts(updateRows, updateValues);
+            inserter.insertBatch(tableName, newPuts);
+
             List<Index> hitIndexes = tableIndexService.getHitIndexesWhenUpdate(tableName, updateQualifiers);
             if (hitIndexes.size() > 0) {
                 byte[] indexTable = ByteArrayUtils.getIndexTableName(tableName);
                 deleter.deleteBatch(indexTable, IndexUtils.buildIndexTableRowKey(updateRows, hitIndexes));
                 inserter.insertBatch(indexTable, buildIndexTablePuts(updateRows, updateValues, hitIndexes));
             }
-            // 3. 更新表数据
-            List<Map<String, byte[]>> newPuts = buildDataTablePuts(updateRows, updateValues);
-            inserter.insertBatch(tableName, newPuts);
+
         }
 
         return ResultUtil.getSuccessBaseResult();

@@ -131,7 +131,11 @@ public class DeleteServiceImpl implements DeleteService {
         }
         if (deleteRows.getSize() > 0) {
             deleter.deleteBatch(tableName, buildDataTableRowKey(deleteRows));
-            deleter.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(deleteRows, indexInfoHolder.getTableIndexes(tableName)));
+            List<Index> indexes = indexInfoHolder.getTableIndexes(tableName);
+            if (indexes != null && indexes.size() > 0) {
+                deleter.deleteBatch(ByteArrayUtils.getIndexTableName(tableName), IndexUtils.buildIndexTableRowKey(deleteRows, indexes));
+            }
+
         }
 
         return ResultUtil.getSuccessBaseResult();
