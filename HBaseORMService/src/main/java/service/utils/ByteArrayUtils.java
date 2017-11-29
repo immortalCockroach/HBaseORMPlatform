@@ -44,10 +44,14 @@ public class ByteArrayUtils {
             // 加入对NULL字段的支持
             if (array == null) {
                 tmp.add(ServiceConstants.NULL);
+            }
+            if (array.length == 1 && array[0] == ServiceConstants.NULL) {
+                tmp.add(escape);
+                tmp.add(ServiceConstants.NULL);
             } else {
                 for (byte b : array) {
-                    // 转义符、分隔符、NUL前面加上转义，即ESC->ESC ESC, EOT->ESC EOT, NUL-> ESC NUL
-                    if (b == separator || b == escape || b == ServiceConstants.NULL) {
+                    // 转义符、分隔符前面加上转义，即ESC->ESC ESC, EOT->ESC EOT
+                    if (b == separator || b == escape ) {
                         // 填充转义符以及原先的字符
                         tmp.add(escape);
                         tmp.add(b);
@@ -177,7 +181,7 @@ public class ByteArrayUtils {
             res[2 * i + 1] = Bytes.toBytes(qualifiers[i]);
             res[2 * i + 2] = line.getBytes(qualifiers[i]);
         }
-        // 最后一个为rowkey的值
+        // 最后一个为rowkey的
         res[2 * size + 1] = line.getBytes(CommonConstants.ROW_KEY);
 
         return res;
