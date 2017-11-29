@@ -73,7 +73,7 @@ public class TestInsert {
             return;
         }
         String[] indexes = getIndexByCount(indexCount);
-        if (indexes.length == 3) {
+        if (indexes.length == 2) {
             CreateIndexParam.CreateIndexParamBuilder builder = new CreateIndexParam.CreateIndexParamBuilder(
                     Bytes.toBytes("testCreateAuto"), new String[]{"col1", "col2"});
             CreateIndexParam param = builder.build();

@@ -9,7 +9,6 @@ import service.hbasemanager.creation.TableIndexService;
 import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.insert.TableInsertService;
 import service.hbasemanager.utils.HBaseTableUtils;
-import service.utils.ByteArrayUtils;
 
 import javax.annotation.Resource;
 import java.util.List;

@@ -131,7 +131,7 @@ public class QueryServiceImpl implements QueryService {
 
                 byte[][] rowkeys = ByteArrayUtils.getRowkeys(mergedMap.keySet());
                 ListResult backTableRes = getter.readSeparatorLines(tableName, rowkeys, backTableQualifiers);
-                return InternalResultUtils.buildResult(mergedMap, backTableRes, filter, false);
+                return InternalResultUtils.buildResult(mergedMap, backTableRes, filter, true);
             }
         }
     }

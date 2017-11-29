@@ -102,7 +102,7 @@ public class ResultUtil {
      */
     public static ListResult getEmptyListResult() {
         ListResult result = new ListResult();
-        result.setData(null);
+        result.setData(new JSONArray());
         result.setCode(200);
         result.setSize(0);
         result.setSuccess(true);

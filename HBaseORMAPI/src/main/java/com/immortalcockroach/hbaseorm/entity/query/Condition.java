@@ -23,6 +23,7 @@ public class Condition implements Serializable {
     public Condition(Expression e) {
         expressions = new ArrayList<>();
         expressions.add(e);
+        logicOperators = new ArrayList<>();
     }
 
 

@@ -60,7 +60,4 @@ public class IndexParam {
         this.linePrefix.put(column, value);
     }
 
-    public void addQualifier(String qualifier) {
-        this.qualifiers.add(qualifier);
-    }
 }

@@ -22,7 +22,7 @@ public class KeyPairsBuilder {
      */
     public static List<KeyPair> buildKeyPairsNEQ(IndexParam param) {
         byte[] prefix = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(), param.getQualifiers().toArray(new
-                String[]{}), param.getIndexNum(), false);
+                String[]{}), param.getIndexNum(), true);
         byte[] startKey = prefix;
         byte[] endKey = ByteArrayUtils.getLargeByteArray(prefix);
 
@@ -49,8 +49,7 @@ public class KeyPairsBuilder {
             // String大于的情况  endKey为不包含lastValue的greater startKey为包含lastValue的greater
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
-            param.addOrUpdateLinePrefix(column, value);
-            param.addQualifier(column);
+
             byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false));
             List<KeyPair> res = new ArrayList<>();
@@ -74,8 +73,7 @@ public class KeyPairsBuilder {
             // String大于等于的情况  endKey为不包含lastValue的greater startKey为包含lastValue
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false));
-            param.addOrUpdateLinePrefix(column, value);
-            param.addQualifier(column);
+
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
             List<KeyPair> res = new ArrayList<>();
@@ -99,8 +97,6 @@ public class KeyPairsBuilder {
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false);
 
-            param.addOrUpdateLinePrefix(column, value);
-            param.addQualifier(column);
             byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
 
@@ -125,8 +121,6 @@ public class KeyPairsBuilder {
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false);
 
-            param.addOrUpdateLinePrefix(column, value);
-            param.addQualifier(column);
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
 
@@ -148,10 +142,8 @@ public class KeyPairsBuilder {
         byte[] upper = expression.getOptionValue();
 
         if (ColumnTypeEnum.isStringType(type)) {
-            // String()的情况  startKey为包含lower的greater endKey为包含upper
+            // String的()情况  startKey为包含lower的greater endKey为包含upper
 
-            param.addOrUpdateLinePrefix(column, lower);
-            param.addQualifier(column);
             byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
 
@@ -179,8 +171,6 @@ public class KeyPairsBuilder {
         if (ColumnTypeEnum.isStringType(type)) {
             // String[)的情况  startKey为包含lower endKey为包含upper
 
-            param.addOrUpdateLinePrefix(column, lower);
-            param.addQualifier(column);
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
 
@@ -208,8 +198,6 @@ public class KeyPairsBuilder {
         if (ColumnTypeEnum.isStringType(type)) {
             // String(]的情况  startKey为包含lower的larger endKey为包含upper的larger
 
-            param.addOrUpdateLinePrefix(column, lower);
-            param.addQualifier(column);
             byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
 
@@ -237,8 +225,7 @@ public class KeyPairsBuilder {
         if (ColumnTypeEnum.isStringType(type)) {
             // String[]的情况  startKey为包含lower endKey为包含upper的larger
 
-            param.addOrUpdateLinePrefix(column, lower);
-            param.addQualifier(column);
+
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
                     param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
 

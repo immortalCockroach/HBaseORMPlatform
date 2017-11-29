@@ -97,6 +97,7 @@ public class TableGetService {
                         g.addColumn(family, Bytes.toBytes(s));
                     }
                 }
+                gets.add(g);
 
             }
 

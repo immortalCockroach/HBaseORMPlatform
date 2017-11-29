@@ -9,6 +9,7 @@ import org.apache.hadoop.hbase.filter.CompareFilter;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.LongComparator;
+import org.apache.hadoop.hbase.filter.SingleColumnValueExcludeFilter;
 import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import service.constants.ServiceConstants;
 import service.hbasemanager.entity.comparators.ByteComparator;
@@ -70,7 +71,12 @@ public class FilterUtils {
         } else {
             // 不等于的情况下必须扫索引表的该前缀的全部，后面的再过滤
             // 虽然在新的索引命中匹配算法的情况下
-            return buildFilterNEQ(expression, descriptor);
+            if (operatorId == ArithmeticOperatorEnum.EQ.getId()) {
+                return buildFilterEQ(expression, descriptor);
+            } else {
+                return buildFilterNEQ(expression, descriptor);
+            }
+
         }
         return null;
     }
@@ -540,6 +546,50 @@ public class FilterUtils {
             case 4: // long
                 SingleColumnValueFilter filterL1 = new SingleColumnValueFilter(ServiceConstants.BYTES_COLUMN_FAMILY,
                         Bytes.toBytes(column), CompareFilter.CompareOp.NOT_EQUAL, new LongComparator(Bytes.toLong(left)));
+
+                filters.add(filterL1);
+                return filters;
+            default:
+                return null;
+        }
+    }
+
+    private static List<Filter> buildFilterEQ(Expression expression, TableDescriptor descriptor) {
+        String column = expression.getColumn();
+        Integer type = descriptor.getTypeOfColumn(column);
+        byte[] left = expression.getValue();
+        List<Filter> filters = new ArrayList<>();
+        switch (type) {
+            case 0: // string
+
+                SingleColumnValueFilter filterStr1 = new SingleColumnValueFilter(ServiceConstants.BYTES_COLUMN_FAMILY,
+                        Bytes.toBytes(column), CompareFilter.CompareOp.EQUAL, left);
+
+                filters.add(filterStr1);
+                return filters;
+            case 1: // byte
+                SingleColumnValueFilter filterB1 = new SingleColumnValueFilter(ServiceConstants.BYTES_COLUMN_FAMILY,
+                        Bytes.toBytes(column), CompareFilter.CompareOp.EQUAL, new ByteComparator(left[0]));
+
+
+                filters.add(filterB1);
+                return filters;
+            case 2: // short
+                SingleColumnValueFilter filterS1 = new SingleColumnValueFilter(ServiceConstants.BYTES_COLUMN_FAMILY,
+                        Bytes.toBytes(column), CompareFilter.CompareOp.EQUAL, new ShortComparator(Bytes.toShort(left)));
+
+                filters.add(filterS1);
+                return filters;
+            case 3: // int
+                SingleColumnValueFilter filterI1 = new SingleColumnValueFilter(ServiceConstants.BYTES_COLUMN_FAMILY,
+                        Bytes.toBytes(column), CompareFilter.CompareOp.EQUAL, new IntComparator(Bytes.toInt(left)));
+
+
+                filters.add(filterI1);
+                return filters;
+            case 4: // long
+                SingleColumnValueFilter filterL1 = new SingleColumnValueFilter(ServiceConstants.BYTES_COLUMN_FAMILY,
+                        Bytes.toBytes(column), CompareFilter.CompareOp.EQUAL, new LongComparator(Bytes.toLong(left)));
 
                 filters.add(filterL1);
                 return filters;

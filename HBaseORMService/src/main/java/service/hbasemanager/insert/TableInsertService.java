@@ -65,6 +65,7 @@ public class TableInsertService {
 
     /**
      * 插入单行
+     *
      * @param tableName
      * @param values
      * @return
@@ -75,10 +76,12 @@ public class TableInsertService {
 
         try (Table table = connection.getTable(TableName.valueOf(tableName))) {
 
-            Put put = new Put(values.remove(CommonConstants.ROW_KEY));
+            byte[] rowkey = values.remove(CommonConstants.ROW_KEY);
+            Put put = new Put(rowkey);
             for (Map.Entry<String, byte[]> entry : values.entrySet()) {
                 put.addColumn(ServiceConstants.BYTES_COLUMN_FAMILY, Bytes.toBytes(entry.getKey()), entry.getValue());
             }
+            values.put(CommonConstants.ROW_KEY, rowkey);
             table.put(put);
 
         } catch (IOException e) {
@@ -103,11 +106,13 @@ public class TableInsertService {
         for (int i = start; i <= stop; i++) {
             Map<String, byte[]> lineMap = valuesList.get(i);
             // 首先获得rowkey
-            Put p = new Put(lineMap.remove(CommonConstants.ROW_KEY));
+            byte[] rowkey = lineMap.remove(CommonConstants.ROW_KEY);
+            Put p = new Put(rowkey);
             byte[] family = ServiceConstants.BYTES_COLUMN_FAMILY;
             for (Map.Entry<String, byte[]> entry : lineMap.entrySet()) {
                 p.addColumn(family, Bytes.toBytes(entry.getKey()), entry.getValue());
             }
+            lineMap.put(CommonConstants.ROW_KEY, rowkey);
             res.add(p);
         }
         return res;

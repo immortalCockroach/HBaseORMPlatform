@@ -26,9 +26,6 @@ public class QueryInfoWithIndexes {
     // 未被索引命中的查询条件
     private Set<String> unhitColumns;
 
-    private TableDescriptor descriptor;
-
-
     public QueryInfoWithIndexes(List<Index> indexColumnList, List<Expression> expressions, int[] hitNum) {
         this.indexColumnList = indexColumnList;
         expressionMap = new HashMap<>();
@@ -45,11 +42,12 @@ public class QueryInfoWithIndexes {
                 continue;
             }
             String[] indexColumns = indexColumnList.get(i).getIndexColumnList();
-            for (int j = 0; j <= hitNum[j] - 1; j++) {
-                allColumns.add(indexColumns[j]);
+            for (int j = 0; j <= hitNum[i] - 1; j++) {
+                allColumns.add(indexColumns[i]);
             }
         }
         // 如果查询条件未命中，则加入unHitColumns，等待回表查询
+        unhitColumns = new HashSet<>();
         for (String queryColumn : expressionMap.keySet()) {
             if (!allColumns.contains(queryColumn)) {
                 unhitColumns.add(queryColumn);
@@ -86,6 +84,11 @@ public class QueryInfoWithIndexes {
             Expression expression = expressionMap.get(column);
             // 索引只能用到第一个非等值查询为止
             if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
+                // 如果是范围查询，则也加入
+                if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.NEQ.getId()) {
+                    linePrefix.put(column, expression.getValue());
+                    qualifiers.add(column);
+                }
                 break;
             } else {
                 linePrefix.put(column, expression.getValue());
@@ -95,36 +98,13 @@ public class QueryInfoWithIndexes {
         byte indexNum = (byte) index.getIndexNum();
         // 所有都是等值查询
         if (j == hitNum) {
-            return new TableScanParam(ByteArrayUtils.buildIndexTableScanPrefix(linePrefix, qualifiers.toArray(new
-                    String[]{}), (byte) index.getIndexNum(), true));
+            return new TableScanParam(ByteArrayUtils.buildIndexTableScanPrefix(linePrefix,
+                    qualifiers.toArray(new String[]{}), (byte) index.getIndexNum(), true));
         } else {
             // 第j个不是等值查询
             String column = indexColumns[j];
             return new TableScanParam(linePrefix, qualifiers, expressionMap.get(column), indexNum, descriptor);
         }
-    }
-
-    /**
-     * 命中索引中等值的前缀的数量
-     *
-     * @param i
-     * @param hitNum
-     * @return
-     */
-    public int getPrefixCount(int i, int hitNum) {
-        String[] indexColumns = indexColumnList.get(i).getIndexColumnList();
-        int count = 0;
-        for (int j = 0; j <= hitNum - 1; j++) {
-            Expression expression = expressionMap.get(indexColumns[j]);
-            // 索引只能用到最后一个等值查询为止
-            if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.EQ.getId()) {
-                count++;
-                break;
-            } else {
-                count++;
-            }
-        }
-        return count;
     }
 
 }

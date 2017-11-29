@@ -1,9 +1,9 @@
 package service.hbasemanager.entity.scanresult;
 
 import com.alibaba.fastjson.JSONObject;
-import com.immortalcockroach.hbaseorm.constant.CommonConstants;
 import com.immortalcockroach.hbaseorm.util.Bytes;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +15,7 @@ public class IndexLine {
     private Map<String, byte[]> columnMap;
 
     public IndexLine(byte[][] splitArray, Set<String> filterColumns) {
+        columnMap = new HashMap<>();
         int size = splitArray.length;
         // 第一个位置为IndexNum，故跳过
         for (int i = 1; i <= size - 2; i += 2) {

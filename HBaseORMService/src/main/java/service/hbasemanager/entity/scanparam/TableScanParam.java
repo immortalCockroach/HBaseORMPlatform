@@ -39,7 +39,7 @@ public final class TableScanParam {
                 this.keyPairList = KeyPairsBuilder.buildKeyPairsBetweenL(param, descriptor);
             } else if (operatorId == ArithmeticOperatorEnum.BETWEENR.getId()) {
                 this.keyPairList = KeyPairsBuilder.buildKeyPairsBetweenR(param, descriptor);
-            } else if (operatorId == ArithmeticOperatorEnum.BETWEENLR.getId()){
+            } else if (operatorId == ArithmeticOperatorEnum.BETWEENLR.getId()) {
                 this.keyPairList = KeyPairsBuilder.buildKeyPairsBetweenLR(param, descriptor);
             }
         } else if (ArithmeticOperatorEnum.isSingleRange(operatorId)) { //
@@ -67,6 +67,8 @@ public final class TableScanParam {
         // 如果返回是null 代表不合法
         if (keyPairList == null) {
             this.isValid = false;
+        } else {
+            this.isValid = true;
         }
     }
 

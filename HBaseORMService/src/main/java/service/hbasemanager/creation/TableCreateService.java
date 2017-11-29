@@ -144,7 +144,7 @@ public class TableCreateService {
             builder.append(column.getColumnName());
             builder.append(ServiceConstants.GLOBAL_DESC_TABLE_INNER_SEPARATOR);
             builder.append(String.valueOf(column.getType()));
-            builder.append(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
+            builder.append(ServiceConstants.GLOBAL_DESC_TABLE_SEPARATOR);
         }
         // 去掉最后的'_'
         return builder.substring(0, builder.length() - 1);
