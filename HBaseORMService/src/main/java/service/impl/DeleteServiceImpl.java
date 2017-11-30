@@ -127,7 +127,7 @@ public class DeleteServiceImpl implements DeleteService {
 
             ListResult backTableRes = getter.readSeparatorLines(tableName, rowkeys, new String[]{});
             // 获得完整的需要删除的行
-            deleteRows = InternalResultUtils.buildResult(mergedMap, backTableRes, filter, false);
+            deleteRows = InternalResultUtils.buildResult(mergedMap, backTableRes, filter, false, descriptor);
         }
         if (deleteRows.getSize() > 0) {
             deleter.deleteBatch(tableName, buildDataTableRowKey(deleteRows));

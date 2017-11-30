@@ -66,11 +66,13 @@ public class TestDelete {
         }
         CreateIndexParam.CreateIndexParamBuilder builder = new CreateIndexParam.CreateIndexParamBuilder(
                 Bytes.toBytes("testCreateAuto"), new String[]{"col1"});
+        builder.size(new int[]{10});
         CreateIndexParam param = builder.build();
         BaseResult result = createService.createIndex(param);
         if (indexCount == 2) {
             CreateIndexParam.CreateIndexParamBuilder builder2 = new CreateIndexParam.CreateIndexParamBuilder(
                     Bytes.toBytes("testCreateAuto"), new String[]{"col1", "col2"});
+            builder2.size(new int[]{10, 10});
             CreateIndexParam param2 = builder2.build();
             BaseResult result2 = createService.createIndex(param2);
         }
@@ -97,9 +99,9 @@ public class TestDelete {
 
     @RequestMapping(value = "/testDeleteEqual", method = RequestMethod.GET)
     @ResponseBody
-    public String testCorrectEQ(@RequestParam("col1") Integer col1) {
+    public String testDeleteEQ(@RequestParam("col1") String col1) {
         DeleteParam.DeleteParamBuilder builder = new DeleteParam.DeleteParamBuilder(
-                Bytes.toBytes("testCreateAuto"), new Condition(new Expression("col1", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col1 + ""))));
+                Bytes.toBytes("testCreateAuto"), new Condition(new Expression("col1", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col1))));
 
         DeleteParam param = builder.build();
         long start = System.currentTimeMillis();

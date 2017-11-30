@@ -133,15 +133,20 @@ public class TableIndexService {
             lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes(newIndex));
             inserter.insert(ServiceConstants.GLOBAL_INDEX_TABLE_BYTES, lineMap);
         }
-        return indexInfoHolder.updateGlobalMap(tableName, qualifiers);
+        return indexInfoHolder.updateGlobalMap(tableName, qualifiers, indexLength);
     }
 
     private void formatLength(String[] qualifiers, int[] indexLength, TableDescriptor descriptor) {
         for (int i = 0; i <= qualifiers.length - 1; i++) {
             String qualifier = qualifiers[i];
+            // 如果是非字符串 则取返回的
+            // 如果是字符串 优先取传入的
             int length = getLength(qualifier, descriptor);
-            if (length == 0) {
-                length = ServiceConstants.DEFAULT_VARCHAR_LENGTH;
+            if (length == -1) {
+                length = indexLength[i];
+                if (length <= 0) {
+                    length = ServiceConstants.DEFAULT_VARCHAR_LENGTH;
+                }
             }
             indexLength[i] = length;
         }

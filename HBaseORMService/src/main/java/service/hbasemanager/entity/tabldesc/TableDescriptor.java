@@ -11,6 +11,10 @@ import java.util.Map;
  * Created by immortalCockroach on 10/4/17.
  */
 public class TableDescriptor {
+    public Map<String, Integer> getDescriptor() {
+        return descriptor;
+    }
+
     private Map<String, Integer> descriptor;
 
     public TableDescriptor(Column[] columns) {

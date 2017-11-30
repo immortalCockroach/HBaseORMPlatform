@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("testQuery/")
-public class TestQuery {
+@RequestMapping("testQueryString/")
+public class TestQueryString {
 
     @Resource
     private QueryService queryService;
@@ -55,10 +55,10 @@ public class TestQuery {
         List<Map<String, byte[]>> content = new ArrayList<>();
         for (int i = 1; i <= 10; i++) {
             Map<String, byte[]> map = new HashMap<>();
-            map.put(CommonConstants.ROW_KEY, Bytes.toBytes(i));
-            map.put("col1", Bytes.toBytes(i + 1));
-            map.put("col2", Bytes.toBytes(i + 2));
-            map.put("col3", Bytes.toBytes(i + 3));
+            map.put(CommonConstants.ROW_KEY, Bytes.toBytes(i + ""));
+            map.put("col1", Bytes.toBytes((i + 1) + ""));
+            map.put("col2", Bytes.toBytes((i + 2) + ""));
+            map.put("col3", Bytes.toBytes((i + 3) + ""));
 
             content.add(map);
         }
@@ -74,23 +74,22 @@ public class TestQuery {
         }
         CreateIndexParam.CreateIndexParamBuilder builder = new CreateIndexParam.CreateIndexParamBuilder(
                 Bytes.toBytes("testCreateAuto"), new String[]{"col1"});
-        builder.size(new int[]{4});
+        builder.size(new int[]{10});
         CreateIndexParam param = builder.build();
         BaseResult result = createService.createIndex(param);
         if (indexCount == 2) {
             CreateIndexParam.CreateIndexParamBuilder builder2 = new CreateIndexParam.CreateIndexParamBuilder(
                     Bytes.toBytes("testCreateAuto"), new String[]{"col1", "col2"});
-            builder2.size(new int[]{4,4});
+            builder2.size(new int[]{10,10});
             CreateIndexParam param2 = builder2.build();
             BaseResult result2 = createService.createIndex(param2);
         }
         return "ok";
-
     }
 
     public String testCreateTable() {
         CreateTableParam.CreateTableParamBuilder builder = new CreateTableParam.CreateTableParamBuilder(Bytes.toBytes("testCreateAuto"),
-                new Column[]{new Column("col1", 3), new Column("col2", 3), new Column("col3", 3)});
+                new Column[]{new Column("col1", 0), new Column("col2", 0), new Column("col3", 0)});
         CreateTableParam param = builder.build();
         BaseResult result = createService.createTable(param);
         return JSON.toJSONString(result);
@@ -107,7 +106,7 @@ public class TestQuery {
 
     @RequestMapping(value = "/testEqual", method = RequestMethod.GET)
     @ResponseBody
-    public String testCorrectEQ(@RequestParam("col1") Integer col1) {
+    public String testCorrectEQ(@RequestParam("col1") String col1) {
         QueryParam.QueryParamBuilder builder = new QueryParam.QueryParamBuilder(
                 Bytes.toBytes("testCreateAuto"));
         builder.qulifiers(new String[]{"col1", "col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col1))));
@@ -117,7 +116,7 @@ public class TestQuery {
         for (int i = 0; i <= array.size() - 1; i++) {
             JSONObject o = array.getJSONObject(i);
             for (Map.Entry<String, Object> entry : o.entrySet()) {
-                o.put(entry.getKey(), Bytes.toInt((byte[]) entry.getValue()));
+                o.put(entry.getKey(), Bytes.toString((byte[]) entry.getValue()));
             }
         }
         return JSON.toJSONString(result);
@@ -126,7 +125,7 @@ public class TestQuery {
     @RequestMapping(value = "/testGE", method =
             RequestMethod.GET)
     @ResponseBody
-    public String testCorrectGE(@RequestParam("col1") Integer col1) {
+    public String testCorrectGE(@RequestParam("col1") String col1) {
         QueryParam.QueryParamBuilder builder = new QueryParam.QueryParamBuilder(
                 Bytes.toBytes("testCreateAuto"));
         builder.qulifiers(new String[]{"col1", "col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.GE.getId(), Bytes.toBytes(col1))));
@@ -136,7 +135,7 @@ public class TestQuery {
         for (int i = 0; i <= array.size() - 1; i++) {
             JSONObject o = array.getJSONObject(i);
             for (Map.Entry<String, Object> entry : o.entrySet()) {
-                o.put(entry.getKey(), Bytes.toInt((byte[]) entry.getValue()));
+                o.put(entry.getKey(), Bytes.toString((byte[]) entry.getValue()));
             }
         }
         return JSON.toJSONString(result);
@@ -145,7 +144,7 @@ public class TestQuery {
     @RequestMapping(value = "/testLE", method =
             RequestMethod.GET)
     @ResponseBody
-    public String testCorrectLE(@RequestParam("col1") Integer col1) {
+    public String testCorrectLE(@RequestParam("col1") String col1) {
         QueryParam.QueryParamBuilder builder = new QueryParam.QueryParamBuilder(
                 Bytes.toBytes("testCreateAuto"));
         builder.qulifiers(new String[]{"col1", "col2", "col3"}).condition(new Condition(new Expression("col1", ArithmeticOperatorEnum.LE.getId(), Bytes.toBytes(col1))));
@@ -155,7 +154,7 @@ public class TestQuery {
         for (int i = 0; i <= array.size() - 1; i++) {
             JSONObject o = array.getJSONObject(i);
             for (Map.Entry<String, Object> entry : o.entrySet()) {
-                o.put(entry.getKey(), Bytes.toInt((byte[]) entry.getValue()));
+                o.put(entry.getKey(), Bytes.toString((byte[]) entry.getValue()));
             }
         }
         return JSON.toJSONString(result);
@@ -163,7 +162,7 @@ public class TestQuery {
 
     @RequestMapping(value = "/testComposite", method = RequestMethod.GET)
     @ResponseBody
-    public String testCorrectComposite(@RequestParam("col1") Integer col1, @RequestParam("col2") Integer col2) {
+    public String testCorrectComposite(@RequestParam("col1") String col1, @RequestParam("col2") String col2) {
         QueryParam.QueryParamBuilder builder = new QueryParam.QueryParamBuilder(
                 Bytes.toBytes("testCreateAuto"));
         Condition condition = new Condition(new Expression("col1", ArithmeticOperatorEnum.EQ.getId(), Bytes.toBytes(col1)));
@@ -175,7 +174,7 @@ public class TestQuery {
         for (int i = 0; i <= array.size() - 1; i++) {
             JSONObject o = array.getJSONObject(i);
             for (Map.Entry<String, Object> entry : o.entrySet()) {
-                o.put(entry.getKey(), Bytes.toInt((byte[]) entry.getValue()));
+                o.put(entry.getKey(), Bytes.toString((byte[]) entry.getValue()));
             }
         }
         return JSON.toJSONString(result);

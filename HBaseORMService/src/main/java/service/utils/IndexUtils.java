@@ -29,7 +29,7 @@ public class IndexUtils {
      */
     public static String getCombinedIndex(String[] qualifiers, int[] indexLength) {
         StringBuilder builder = new StringBuilder();
-        int size = 0;
+        int size = qualifiers.length;
         for (int i = 0; i <= size - 1; i++) {
             builder.append(qualifiers[i] + ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR + indexLength[i] + ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
         }

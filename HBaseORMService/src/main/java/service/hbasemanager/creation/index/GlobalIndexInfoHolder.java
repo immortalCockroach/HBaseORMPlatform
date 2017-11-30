@@ -87,7 +87,7 @@ public class GlobalIndexInfoHolder {
      * @param tableName
      * @param qualifiers
      */
-    public Index updateGlobalMap(byte[] tableName, String[] qualifiers) {
+    public Index updateGlobalMap(byte[] tableName, String[] qualifiers, int[] indexLength) {
         // 更新index当前global_idx表维护的索引信息
         String name = Bytes.toString(tableName);
         List<Index> indexes = globalIndexMap.get(name);
@@ -95,7 +95,7 @@ public class GlobalIndexInfoHolder {
             indexes = new ArrayList<>();
             globalIndexMap.put(name, indexes);
         }
-        Index newIndex = new Index(IndexUtils.getCombinedIndex(qualifiers), (byte) indexes.size());
+        Index newIndex = new Index(IndexUtils.getCombinedIndex(qualifiers, indexLength), (byte) indexes.size());
         indexes.add(newIndex);
         return newIndex;
     }

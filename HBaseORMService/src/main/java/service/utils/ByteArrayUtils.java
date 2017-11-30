@@ -263,7 +263,7 @@ public class ByteArrayUtils {
                 builder.addPosition(sizeOfIndex);
             } else {
                 builder.put((byte) 1);
-                builder.put(truncate(content, sizeOfIndex));
+                builder.put(fixSize(content, sizeOfIndex));
             }
         }
 
@@ -298,7 +298,7 @@ public class ByteArrayUtils {
                 builder.addPosition(sizeOfIndex);
             } else {
                 builder.put((byte) 1);
-                builder.put(truncate(content, sizeOfIndex));
+                builder.put(fixSize(content, sizeOfIndex));
             }
         }
 
@@ -334,29 +334,39 @@ public class ByteArrayUtils {
                 builder.addPosition(sizeOfIndex);
             } else {
                 builder.put((byte) 1);
-                builder.put(truncate(content, sizeOfIndex));
+                builder.put(fixSize(content, sizeOfIndex));
             }
         }
         builder.put((byte) 1);
         if (includeLastValue) {
             String qualifier = qualifiers[i];
             byte[] content = line.get(qualifier);
-            builder.put(truncate(content, sizeOfIndexes[i]));
+            builder.put(fixSize(content, sizeOfIndexes[i]));
         }
 
 
         return builder.array();
     }
 
-
-    private static byte[] truncate(byte[] key, int maxLength) {
-        if (maxLength >= key.length) {
+    /**
+     * 根据key的要求进行加长或者截断
+     * @param key
+     * @param maxLength
+     * @return
+     */
+    private static byte[] fixSize(byte[] key, int maxLength) {
+        if (maxLength == key.length) {
             return key;
+        } else if (maxLength < key.length) {
+            byte[] res = new byte[maxLength];
+            System.arraycopy(key, 0, res, 0, maxLength);
+            return res;
+        } else {
+            byte[] res = new byte[maxLength];
+            System.arraycopy(key, 0, res, 0, key.length);
+            return res;
         }
 
-        byte[] res = new byte[maxLength];
-        System.arraycopy(key, 0, res, 0, maxLength);
-        return res;
     }
 
     /**
@@ -417,7 +427,7 @@ public class ByteArrayUtils {
             int sizeofIndex = sizeOfIndexes[i];
             res[2 * i + 2] = new byte[sizeofIndex];
             if (flag == 1) {
-                System.arraycopy(array, rawIndex, res[i], 0, sizeofIndex);
+                System.arraycopy(array, rawIndex, res[2 * i + 2], 0, sizeofIndex);
             }
             rawIndex += sizeofIndex;
         }
@@ -463,7 +473,7 @@ public class ByteArrayUtils {
         }
         switch (columnType) {
             case 0:
-                return checkString(Bytes.toString(value), expression);
+                return checkString(Bytes.toString(fixString(value)), expression);
             case 1:
                 return checkByte(value[0], expression);
             case 2:
@@ -474,6 +484,25 @@ public class ByteArrayUtils {
                 return checkLong(Bytes.toLong(value), expression);
             default:
                 return false;
+        }
+    }
+
+    /**
+     * 去掉字符串后的padding值
+     * @param value
+     * @return
+     */
+    public static byte[] fixString(byte[] value) {
+        int index = value.length - 1;
+        while (index >= 0 && value[index] == 0) {
+            index--;
+        }
+        if (index == -1) {
+            return new byte[0];
+        } else {
+            byte[] res = new byte[index + 1];
+            System.arraycopy(value, 0, res, 0, index + 1);
+            return res;
         }
     }
 

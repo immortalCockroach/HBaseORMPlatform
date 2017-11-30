@@ -135,7 +135,7 @@ public class UpdateServiceImpl implements UpdateService {
 
             ListResult backTableRes = getter.readSeparatorLines(tableName, rowkeys, new String[]{});
             // 获得完整的需要删除的行
-            updateRows = InternalResultUtils.buildResult(mergedMap, backTableRes, filter, false);
+            updateRows = InternalResultUtils.buildResult(mergedMap, backTableRes, filter, false, descriptor);
         }
 
         if (updateRows.getSize() > 0) {

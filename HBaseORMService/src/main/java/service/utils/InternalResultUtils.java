@@ -3,14 +3,18 @@ package service.utils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.immortalcockroach.hbaseorm.constant.CommonConstants;
+import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
+import com.immortalcockroach.hbaseorm.param.enums.ColumnTypeEnum;
 import com.immortalcockroach.hbaseorm.result.ListResult;
 import com.immortalcockroach.hbaseorm.util.ResultUtil;
 import service.hbasemanager.entity.filter.IndexLineFilter;
 import service.hbasemanager.entity.scanresult.IndexLine;
+import service.hbasemanager.entity.tabldesc.TableDescriptor;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class InternalResultUtils {
@@ -21,7 +25,7 @@ public class InternalResultUtils {
      * @return
      */
     public static ListResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult,
-                                         ListResult backTableRes, IndexLineFilter filter, boolean removed) {
+                                         ListResult backTableRes, IndexLineFilter filter, boolean removed, TableDescriptor descriptor) {
         JSONArray array = new JSONArray();
         JSONArray scanRes = backTableRes.getData();
         int size = scanRes.size();
@@ -39,8 +43,25 @@ public class InternalResultUtils {
             readLine.putAll(originLine.toJSONObject());
             array.add(readLine);
         }
-
+        transform(array, descriptor);
         return ResultUtil.getSuccessListResult(array);
+    }
+
+    public static void transform(JSONArray array, TableDescriptor descriptor) {
+        Map<String, Integer> typeMap = descriptor.getDescriptor();
+        int size = array.size();
+        for (Map.Entry<String, Integer> entry : typeMap.entrySet()) {
+            if (entry.getValue() != ColumnTypeEnum.VARCHAR.getId()) {
+                continue;
+            }
+            String key = entry.getKey();
+
+            for (int i = 0; i <= size - 1; i++) {
+                JSONObject object = array.getJSONObject(i);
+                // format string to standard format
+                object.put(key, ByteArrayUtils.fixString(object.getBytes(key)));
+            }
+        }
     }
 
     public static ListResult buildResult(LinkedHashMap<ByteBuffer, IndexLine> mergedResult, boolean containsRowkey) {
