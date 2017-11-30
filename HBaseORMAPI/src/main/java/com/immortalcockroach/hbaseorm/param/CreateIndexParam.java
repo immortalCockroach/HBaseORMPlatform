@@ -13,6 +13,7 @@ public class CreateIndexParam implements Serializable {
 
     private byte[] tableName;
     private String[] qualifiers;
+    private int[] size;
 
     /**
      * 用于序列化使用，不要调用
@@ -24,6 +25,12 @@ public class CreateIndexParam implements Serializable {
     private CreateIndexParam(CreateIndexParamBuilder builder) {
         this.tableName = builder.tableName;
         this.qualifiers = builder.qualifiers;
+        this.size = builder.size;
+
+    }
+
+    public int[] getSize() {
+        return size;
     }
 
     public byte[] getTableName() {
@@ -37,10 +44,16 @@ public class CreateIndexParam implements Serializable {
     public static class CreateIndexParamBuilder {
         private final byte[] tableName;
         private final String[] qualifiers;
+        private int[] size;
 
         public CreateIndexParamBuilder(byte[] tableName, String[] qualifiers) {
             this.tableName = tableName;
             this.qualifiers = qualifiers;
+        }
+
+        public CreateIndexParamBuilder size(int[] size) {
+            this.size = size;
+            return this;
         }
 
         public CreateIndexParam build() {

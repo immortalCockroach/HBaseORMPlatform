@@ -2,6 +2,7 @@ package service.hbasemanager.entity.scanparam;
 
 import com.immortalcockroach.hbaseorm.entity.query.Expression;
 import com.immortalcockroach.hbaseorm.param.enums.ArithmeticOperatorEnum;
+import service.hbasemanager.entity.index.Index;
 import service.hbasemanager.entity.tabldesc.TableDescriptor;
 
 import java.util.ArrayList;
@@ -22,15 +23,14 @@ public final class TableScanParam {
      * 非等值查询的情况，根据expression来构造startKey和endKey
      *
      * @param linePrefix
-     * @param qualifiers
+     * @param hitNum
      * @param expression
-     * @param indexNum
+     * @param index
      */
-    public TableScanParam(Map<String, byte[]> linePrefix, List<String> qualifiers, Expression expression, byte
-            indexNum, TableDescriptor descriptor) {
+    public TableScanParam(Map<String, byte[]> linePrefix, int hitNum, Expression expression, Index index, TableDescriptor descriptor) {
         // 根据expression的情况设置startKey和endKey
         int operatorId = expression.getArithmeticOperator();
-        IndexParam param = new IndexParam(linePrefix, qualifiers, expression, indexNum);
+        IndexParam param = new IndexParam(linePrefix, hitNum, expression, index);
         // 双目运算符
         if (ArithmeticOperatorEnum.isDoubleRange(operatorId)) {
             if (operatorId == ArithmeticOperatorEnum.BETWEEN.getId()) {

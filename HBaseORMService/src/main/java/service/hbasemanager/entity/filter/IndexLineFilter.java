@@ -57,7 +57,7 @@ public class IndexLineFilter {
             JSONObject line = array.getJSONObject(i);
             byte[] rowkey = line.getBytes(CommonConstants.ROW_KEY);
             // 将行键展开
-            byte[][] splitArray = ByteArrayUtils.getByteListWithSeparator(rowkey, ServiceConstants.EOT, ServiceConstants.ESC);
+            byte[][] splitArray = ByteArrayUtils.getByteListWithSeparator(rowkey, index);
             // 如果split之后的行符合expressions的标准，则加入ScanResult
             if (check(splitArray)) {
                 // 保留查询的列

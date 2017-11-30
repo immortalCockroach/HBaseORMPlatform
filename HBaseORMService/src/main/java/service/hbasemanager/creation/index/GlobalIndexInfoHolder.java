@@ -46,12 +46,11 @@ public class GlobalIndexInfoHolder {
                 // global_idx表的结构为tableName - index
                 JSONObject row = rows.getJSONObject(i);
                 byte[] rowkey = row.getBytes(CommonConstants.ROW_KEY);
-                String[] indexesColumns = Bytes.toString(row.getBytes
-                        (ServiceConstants.GLOBAL_INDEX_TABLE_COL)).split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_SEPARATOR);
+                String[] indexesColumns = Bytes.toString(row.getBytes(ServiceConstants.GLOBAL_INDEX_TABLE_COL)).split(ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_SEPARATOR);
 
                 List<Index> indexes = new ArrayList<>(indexesColumns.length);
                 for (int j = 0; j <= indexesColumns.length - 1; j++) {
-                    indexes.add(new Index(indexesColumns[j], j));
+                    indexes.add(new Index(indexesColumns[j], (byte) j));
                 }
 
                 globalIndexMap.put(Bytes.toString(rowkey), indexes);
@@ -88,7 +87,7 @@ public class GlobalIndexInfoHolder {
      * @param tableName
      * @param qualifiers
      */
-    public void updateGlobalMap(byte[] tableName, String[] qualifiers) {
+    public Index updateGlobalMap(byte[] tableName, String[] qualifiers) {
         // 更新index当前global_idx表维护的索引信息
         String name = Bytes.toString(tableName);
         List<Index> indexes = globalIndexMap.get(name);
@@ -96,8 +95,9 @@ public class GlobalIndexInfoHolder {
             indexes = new ArrayList<>();
             globalIndexMap.put(name, indexes);
         }
-
-        indexes.add(new Index(IndexUtils.getCombinedIndex(qualifiers), indexes.size()));
+        Index newIndex = new Index(IndexUtils.getCombinedIndex(qualifiers), (byte) indexes.size());
+        indexes.add(newIndex);
+        return newIndex;
     }
 
 

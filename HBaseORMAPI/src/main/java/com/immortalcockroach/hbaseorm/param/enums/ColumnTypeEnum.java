@@ -4,7 +4,7 @@ package com.immortalcockroach.hbaseorm.param.enums;
  * Created by immortalCockroach on 9/26/17.
  */
 public enum ColumnTypeEnum {
-    VARCHAR(0, "String", -1),
+    VARCHAR(0, "String", 0),
     BYTE(1, "byte", 1),
     SMALL_INT(2, "short", 2),
     INT(3, "int", 4),
@@ -29,6 +29,16 @@ public enum ColumnTypeEnum {
         }
         return null;
     }
+
+    public static int getLengthById(int id) {
+        for (ColumnTypeEnum columnTypeEnum : ColumnTypeEnum.values()) {
+            if (id == columnTypeEnum.getId()) {
+                return columnTypeEnum.getLength();
+            }
+        }
+        return 0;
+    }
+
 
     public static boolean isStringType(int type) {
         return type == VARCHAR.getId();

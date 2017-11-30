@@ -6,7 +6,6 @@ import service.hbasemanager.entity.scanparam.TableScanParam;
 import service.hbasemanager.entity.tabldesc.TableDescriptor;
 import service.utils.ByteArrayUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -76,7 +75,6 @@ public class QueryInfoWithIndexes {
     public TableScanParam buildIndexTableQueryPrefix(int i, int hitNum, TableDescriptor descriptor) {
         Index index = indexColumnList.get(i);
         Map<String, byte[]> linePrefix = new HashMap<>();
-        List<String> qualifiers = new ArrayList<>();
         String[] indexColumns = index.getIndexColumnList();
         int j;
         for (j = 0; j <= hitNum - 1; j++) {
@@ -87,23 +85,22 @@ public class QueryInfoWithIndexes {
                 // 如果是范围查询，则也加入
                 if (expression.getArithmeticOperator() != ArithmeticOperatorEnum.NEQ.getId()) {
                     linePrefix.put(column, expression.getValue());
-                    qualifiers.add(column);
+                } else {
+                    // 此处需要j-- 因为NEQ不计入索引命中的列
+                    j--;
                 }
                 break;
             } else {
                 linePrefix.put(column, expression.getValue());
-                qualifiers.add(column);
             }
         }
-        byte indexNum = (byte) index.getIndexNum();
         // 所有都是等值查询
         if (j == hitNum) {
-            return new TableScanParam(ByteArrayUtils.buildIndexTableScanPrefix(linePrefix,
-                    qualifiers.toArray(new String[]{}), (byte) index.getIndexNum(), true));
+            return new TableScanParam(ByteArrayUtils.buildIndexTableScanPrefix(linePrefix, j, index, true));
         } else {
             // 第j个不是等值查询
             String column = indexColumns[j];
-            return new TableScanParam(linePrefix, qualifiers, expressionMap.get(column), indexNum, descriptor);
+            return new TableScanParam(linePrefix, j, expressionMap.get(column), index, descriptor);
         }
     }
 

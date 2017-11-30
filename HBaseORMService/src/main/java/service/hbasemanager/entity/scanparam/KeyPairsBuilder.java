@@ -21,8 +21,7 @@ public class KeyPairsBuilder {
      * @return
      */
     public static List<KeyPair> buildKeyPairsNEQ(IndexParam param) {
-        byte[] prefix = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(), param.getQualifiers().toArray(new
-                String[]{}), param.getIndexNum(), true);
+        byte[] prefix = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(), param.getHitNum(), param.getIndex(), true);
         byte[] startKey = prefix;
         byte[] endKey = ByteArrayUtils.getLargeByteArray(prefix);
 
@@ -48,10 +47,10 @@ public class KeyPairsBuilder {
         if (ColumnTypeEnum.isStringType(type)) {
             // String大于的情况  endKey为不包含lastValue的greater startKey为包含lastValue的greater
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+                    param.getHitNum(), param.getIndex(), true));
 
             byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false));
+                    param.getHitNum(), param.getIndex(), false));
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
             return res;
@@ -72,10 +71,10 @@ public class KeyPairsBuilder {
 
             // String大于等于的情况  endKey为不包含lastValue的greater startKey为包含lastValue
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false));
+                    param.getHitNum(), param.getIndex(), false));
 
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+                    param.getHitNum(), param.getIndex(), true);
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
             return res;
@@ -95,10 +94,10 @@ public class KeyPairsBuilder {
         if (ColumnTypeEnum.isStringType(type)) {
             // String小于的情况  startKey为不包含lastValue endKey为包含lastValue
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false);
+                    param.getHitNum(), param.getIndex(), false);
 
             byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+                    param.getHitNum(), param.getIndex(), true);
 
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
@@ -119,10 +118,10 @@ public class KeyPairsBuilder {
         if (ColumnTypeEnum.isStringType(type)) {
             // String小于等于的情况  startKey为不包含lastValue endKey为包含lastValue的greater
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), false);
+                    param.getHitNum(), param.getIndex(), false);
 
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+                    param.getHitNum(), param.getIndex(), true));
 
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
@@ -145,11 +144,11 @@ public class KeyPairsBuilder {
             // String的()情况  startKey为包含lower的greater endKey为包含upper
 
             byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+                    param.getHitNum(), param.getIndex(), true));
 
             param.addOrUpdateLinePrefix(column, upper);
             byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+                    param.getHitNum(), param.getIndex(), true);
 
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
@@ -172,11 +171,11 @@ public class KeyPairsBuilder {
             // String[)的情况  startKey为包含lower endKey为包含upper
 
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+                    param.getHitNum(), param.getIndex(), true);
 
             param.addOrUpdateLinePrefix(column, upper);
             byte[] endKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+                    param.getHitNum(), param.getIndex(), true);
 
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
@@ -199,11 +198,11 @@ public class KeyPairsBuilder {
             // String(]的情况  startKey为包含lower的larger endKey为包含upper的larger
 
             byte[] startKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+                    param.getHitNum(), param.getIndex(), true));
 
             param.addOrUpdateLinePrefix(column, upper);
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+                    param.getHitNum(), param.getIndex(), true));
 
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));
@@ -227,11 +226,11 @@ public class KeyPairsBuilder {
 
 
             byte[] startKey = ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true);
+                    param.getHitNum(), param.getIndex(), true);
 
             param.addOrUpdateLinePrefix(column, upper);
             byte[] endKey = ByteArrayUtils.getLargeByteArray(ByteArrayUtils.buildIndexTableScanPrefix(param.getLinePrefix(),
-                    param.getQualifiers().toArray(new String[]{}), param.getIndexNum(), true));
+                    param.getHitNum(), param.getIndex(), true));
 
             List<KeyPair> res = new ArrayList<>();
             res.add(new KeyPair(startKey, endKey));

@@ -7,8 +7,11 @@ import com.immortalcockroach.hbaseorm.util.Bytes;
  * Created by immortalCockRoach on 2016/5/31.
  */
 public class ServiceConstants {
+    @Deprecated
     public static final byte EOT = 4; // 分隔符
+    @Deprecated
     public static final byte ESC = 27; // 转义符
+    @Deprecated
     public static final byte NULL = 0; // null值替代符
 
 
@@ -52,7 +55,7 @@ public class ServiceConstants {
 
     public static final int MAX_TABLE_INDEX_COUNT = 128;
 
-
+    public static final int DEFAULT_VARCHAR_LENGTH = 20;
 
 
 }

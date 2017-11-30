@@ -21,6 +21,22 @@ import java.util.Set;
 public class IndexUtils {
 
     /**
+     * 生成global:global_idx中保存的结构：index
+     *
+     * @param qualifiers
+     * @param indexLength
+     * @return
+     */
+    public static String getCombinedIndex(String[] qualifiers, int[] indexLength) {
+        StringBuilder builder = new StringBuilder();
+        int size = 0;
+        for (int i = 0; i <= size - 1; i++) {
+            builder.append(qualifiers[i] + ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR + indexLength[i] + ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
+        }
+        return builder.substring(0, builder.length() - 1);
+    }
+
+    /**
      * 将qualifiers通过','连接 返回联合索引的格式（单列索引也适合）
      *
      * @param qualifiers
@@ -28,6 +44,7 @@ public class IndexUtils {
      */
     public static String getCombinedIndex(String[] qualifiers) {
         StringBuilder builder = new StringBuilder();
+        int size = 0;
         for (String qualifier : qualifiers) {
             builder.append(qualifier + ServiceConstants.GLOBAL_INDEX_TABLE_INDEX_INNER_SEPARATOR);
         }
@@ -243,7 +260,7 @@ public class IndexUtils {
             JSONObject row = array.getJSONObject(i);
             for (Index index : indexes) {
                 String[] qualifiers = index.getIndexColumnList();
-                rowkeys.add(ByteArrayUtils.generateIndexRowKey(row, qualifiers, (byte) index.getIndexNum()));
+                rowkeys.add(ByteArrayUtils.generateIndexRowKey(row, index));
 
             }
         }

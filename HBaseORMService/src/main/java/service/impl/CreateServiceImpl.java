@@ -95,7 +95,7 @@ public class CreateServiceImpl implements CreateService {
             }
         }
         // 创建索引
-        BaseResult indexRes = tableIndexService.createIndex(tableName, indexTableName, createIndexParam.getQualifiers());
+        BaseResult indexRes = tableIndexService.createIndex(tableName, indexTableName, createIndexParam.getQualifiers(), createIndexParam.getSize());
 
         return indexRes;
 

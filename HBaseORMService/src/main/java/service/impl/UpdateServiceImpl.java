@@ -193,7 +193,7 @@ public class UpdateServiceImpl implements UpdateService {
                 }
                 // 构建索引表的行键
                 Map<String, byte[]> lineMap = new HashMap<>(2);
-                lineMap.put(CommonConstants.ROW_KEY, ByteArrayUtils.generateIndexRowKey(row, qualifiers, (byte) index.getIndexNum()));
+                lineMap.put(CommonConstants.ROW_KEY, ByteArrayUtils.generateIndexRowKey(row, index));
                 // 由于put的数据必须有列，所以此处指定一个，后续不使用col数据
                 lineMap.put(ServiceConstants.GLOBAL_INDEX_TABLE_COL, Bytes.toBytes("1"));
                 rowkeys.add(lineMap);
